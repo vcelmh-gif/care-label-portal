@@ -1,1 +1,0 @@
-"# CASESTUDY Care Label Portal"

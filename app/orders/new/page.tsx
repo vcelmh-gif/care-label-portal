@@ -146,7 +146,15 @@ export default function NewOrderPage() {
                         <button
                           type="button"
                           key={symbol.code}
-                          onClick={() => setSelectedCare((current) => ({ ...current, [group.name]: symbol.code }))}
+                          onClick={() => setSelectedCare((current) => {
+                            const next = { ...current };
+                            if (next[group.name] === symbol.code) {
+                              delete next[group.name];
+                            } else {
+                              next[group.name] = symbol.code;
+                            }
+                            return next;
+                          })}
                           className={`flex min-w-20 flex-col items-center rounded-lg border px-3 py-2 transition ${selectedCare[group.name] === symbol.code ? 'border-ink bg-white text-ink ring-2 ring-ink ring-offset-2' : 'border-border bg-white hover:bg-stone-50'}`}
                           aria-label={`${group.name}: ${symbol.description} ${symbol.code}`}
                         >

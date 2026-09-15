@@ -15,11 +15,11 @@ const sizes = [
 ];
 const fiberRows = [1, 2, 3, 4, 5, 6];
 const careGroups = [
-  { name: 'Washing', code: 'W2', icon: 'W', description: 'Wash symbol' },
-  { name: 'Bleaching', code: 'B1', icon: 'B', description: 'Bleach symbol' },
-  { name: 'Drying', code: 'D1', icon: 'D', description: 'Dry symbol' },
-  { name: 'Ironing', code: 'I1', icon: 'I', description: 'Iron symbol' },
-  { name: 'Dry Cleaning', code: 'DC1', icon: 'DC', description: 'Dry clean symbol' },
+  { name: 'Washing', code: 'W2', image: 'image19.png', description: 'Machine wash at 30 degrees or less on reduced cycle' },
+  { name: 'Bleaching', code: 'B1', image: 'image13.png', description: 'Do not bleach' },
+  { name: 'Drying', code: 'D1', image: 'image17.png', description: 'Do not tumble dry' },
+  { name: 'Ironing', code: 'I1', image: 'image15.png', description: 'Do not iron' },
+  { name: 'Dry Cleaning', code: 'DC1', image: 'image14.png', description: 'Do not dry-clean' },
 ];
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
@@ -146,7 +146,11 @@ export default function NewOrderPage() {
                           className={`flex min-w-20 flex-col items-center rounded-lg border px-3 py-2 transition ${selectedCare[group.name] === symbol ? 'border-ink bg-ink text-white' : 'border-border bg-white hover:bg-stone-50'}`}
                           aria-label={`${group.name}: ${group.description} ${symbol}`}
                         >
-                          <span className={`flex h-10 w-10 items-center justify-center border-2 text-lg font-semibold ${selectedCare[group.name] === symbol ? 'border-white' : 'border-ink'}`}>{group.icon}</span>
+                          <img
+                            src={`/symbols/${group.image}`}
+                            alt={group.description}
+                            className={`h-12 w-12 object-contain ${selectedCare[group.name] === symbol ? 'brightness-0 invert' : ''}`}
+                          />
                           <span className="mt-1 text-xs font-medium">{symbol}</span>
                         </button>
                       ))}

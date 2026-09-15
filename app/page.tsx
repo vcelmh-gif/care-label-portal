@@ -31,7 +31,7 @@ export default function HomePage() {
 
       <section className="mt-12 grid gap-8 lg:grid-cols-[1.3fr_0.7fr]">
         <div className="card p-8">
-          <p className="text-sm uppercase tracking-[0.2em] text-muted">V1 Scope</p>
+          <p className="text-sm uppercase tracking-[0.2em] text-muted">Features</p>
           <h2 className="mt-4 text-2xl font-semibold">Built for label buyers and operations teams</h2>
           <ul className="mt-6 space-y-3 text-muted">
             <li>? User registration with admin approval workflow</li>

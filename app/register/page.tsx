@@ -73,6 +73,7 @@ export default function RegisterPage() {
         <p className="mt-6 text-sm text-muted">
           Already have an account? <Link href="/login" className="font-medium text-ink">Login</Link>
         </p>
+        <Link href="/" className="button-secondary mt-4 block w-full text-center">Back to home</Link>
       </div>
     </main>
   );

@@ -54,6 +54,12 @@ function NewOrderForm() {
       'Dry Cleaning': existingOrder.careSymbols.dryCleaning[0],
     } : {},
   );
+  const [fiberContent, setFiberContent] = useState(
+    fiberRows.map((_, index) => ({
+      percentage: existingOrder?.fibers[index]?.percentage.toString() ?? '',
+      name: existingOrder?.fibers[index]?.name ?? '',
+    })),
+  );
   const [message, setMessage] = useState('');
   const [texTracerUrl, setTexTracerUrl] = useState('');
   const [texTracerError, setTexTracerError] = useState('');
@@ -66,6 +72,12 @@ function NewOrderForm() {
 
   const updateQuantity = (size: string, value: string) => {
     setQuantities((current) => ({ ...current, [size]: Number(value) || 0 }));
+  };
+
+  const updateFiber = (index: number, field: 'percentage' | 'name', value: string) => {
+    setFiberContent((current) => current.map((fiber, fiberIndex) => (
+      fiberIndex === index ? { ...fiber, [field]: value } : fiber
+    )));
   };
 
   const saveDraft = () => setMessage('Draft saved. You can return to edit this order before submitting.');
@@ -207,10 +219,29 @@ function NewOrderForm() {
                 <table className="min-w-full text-left text-sm">
                   <thead className="border-b border-border text-muted"><tr><th className="px-3 py-3">Percentage</th><th className="px-3 py-3">Fibre</th></tr></thead>
                   <tbody>
-                    {fiberRows.map((row) => (
-                      <tr key={row} className="border-b border-border">
-                        <td className="px-3 py-3"><input className="input min-w-24" type="number" min="0" max="100" placeholder="%" /></td>
-                        <td className="px-3 py-3"><select className="select min-w-40" defaultValue=""><option value="">Select fibre</option>{fibers.map((fiber) => <option key={fiber}>{fiber}</option>)}</select></td>
+                    {fiberContent.map((fiberContentRow, index) => (
+                      <tr key={fiberRows[index]} className="border-b border-border">
+                        <td className="px-3 py-3">
+                          <input
+                            className="input min-w-24"
+                            type="number"
+                            min="0"
+                            max="100"
+                            placeholder="%"
+                            value={fiberContentRow.percentage}
+                            onChange={(event) => updateFiber(index, 'percentage', event.target.value)}
+                          />
+                        </td>
+                        <td className="px-3 py-3">
+                          <select
+                            className="select min-w-40"
+                            value={fiberContentRow.name}
+                            onChange={(event) => updateFiber(index, 'name', event.target.value)}
+                          >
+                            <option value="">Select fibre</option>
+                            {fibers.map((fiber) => <option key={fiber}>{fiber}</option>)}
+                          </select>
+                        </td>
                       </tr>
                     ))}
                   </tbody>

@@ -33,12 +33,12 @@ export default function HomePage() {
         <div className="card p-8">
           <p className="text-sm uppercase tracking-[0.2em] text-muted">Features</p>
           <h2 className="mt-4 text-2xl font-semibold">Built for label buyers and operations teams</h2>
-          <ul className="mt-6 space-y-3 text-muted">
-            <li>? User registration with admin approval workflow</li>
-            <li>? Order creation, duplication, preview, and PDF download</li>
-            <li>? Master data management for countries, fibers, and care symbols</li>
-            <li>? Notification workflow with admin and customer email communications</li>
-            <li>? English, Traditional Chinese, and Simplified Chinese interface support</li>
+          <ul className="mt-6 list-disc space-y-3 pl-5 text-muted">
+            <li>User registration with admin approval workflow</li>
+            <li>Order creation, duplication, preview, and PDF download</li>
+            <li>Master data management for countries, fibers, and care symbols</li>
+            <li>Notification workflow with admin and customer email communications</li>
+            <li>English, Traditional Chinese, and Simplified Chinese interface support</li>
           </ul>
         </div>
 

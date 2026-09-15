@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { FormEvent, useMemo, useState } from 'react';
-import { careSymbols, careTexts, countries, fibers } from '@/lib/mock-data';
+import { careTexts, countries, fibers } from '@/lib/mock-data';
 
 const sizes = [
   '65B', '65C', '65D',
@@ -15,11 +15,17 @@ const sizes = [
 ];
 const fiberRows = [1, 2, 3, 4, 5, 6];
 const careGroups = [
-  { name: 'Washing', code: 'W2', image: 'image19.png', description: 'Machine wash at 30 degrees or less on reduced cycle' },
-  { name: 'Bleaching', code: 'B1', image: 'image13.png', description: 'Do not bleach' },
-  { name: 'Drying', code: 'D1', image: 'image17.png', description: 'Do not tumble dry' },
-  { name: 'Ironing', code: 'I1', image: 'image15.png', description: 'Do not iron' },
-  { name: 'Dry Cleaning', code: 'DC1', image: 'image14.png', description: 'Do not dry-clean' },
+  {
+    name: 'Washing',
+    symbols: [
+      { code: 'W1', image: 'image18.png', description: 'Hand wash at 30 degrees' },
+      { code: 'W2', image: 'image19.png', description: 'Machine wash at 30 degrees or less on reduced cycle' },
+    ],
+  },
+  { name: 'Bleaching', symbols: [{ code: 'B1', image: 'image13.png', description: 'Do not bleach' }] },
+  { name: 'Drying', symbols: [{ code: 'D1', image: 'image17.png', description: 'Do not tumble dry' }] },
+  { name: 'Ironing', symbols: [{ code: 'I1', image: 'image15.png', description: 'Do not iron' }] },
+  { name: 'Dry Cleaning', symbols: [{ code: 'DC1', image: 'image14.png', description: 'Do not dry-clean' }] },
 ];
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
@@ -34,7 +40,7 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 export default function NewOrderPage() {
   const [quantities, setQuantities] = useState<Record<string, number>>({});
   const [selectedCare, setSelectedCare] = useState<Record<string, string>>(
-    Object.fromEntries(careGroups.map((group) => [group.name, group.code])),
+    Object.fromEntries(careGroups.map((group) => [group.name, group.symbols[0].code])),
   );
   const [message, setMessage] = useState('');
   const totalQuantity = useMemo(
@@ -138,20 +144,20 @@ export default function NewOrderPage() {
                   <div key={group.name}>
                     <p className="mb-2 text-sm font-medium">{group.name}</p>
                     <div className="flex flex-wrap gap-3">
-                      {careSymbols.filter((symbol) => symbol.startsWith(group.code.replace('1', '').replace('2', ''))).map((symbol) => (
+                      {group.symbols.map((symbol) => (
                         <button
                           type="button"
-                          key={symbol}
-                          onClick={() => setSelectedCare((current) => ({ ...current, [group.name]: symbol }))}
-                          className={`flex min-w-20 flex-col items-center rounded-lg border px-3 py-2 transition ${selectedCare[group.name] === symbol ? 'border-ink bg-ink text-white' : 'border-border bg-white hover:bg-stone-50'}`}
-                          aria-label={`${group.name}: ${group.description} ${symbol}`}
+                          key={symbol.code}
+                          onClick={() => setSelectedCare((current) => ({ ...current, [group.name]: symbol.code }))}
+                          className={`flex min-w-20 flex-col items-center rounded-lg border px-3 py-2 transition ${selectedCare[group.name] === symbol.code ? 'border-ink bg-ink text-white' : 'border-border bg-white hover:bg-stone-50'}`}
+                          aria-label={`${group.name}: ${symbol.description} ${symbol.code}`}
                         >
                           <img
-                            src={`/symbols/${group.image}`}
-                            alt={group.description}
-                            className={`h-12 w-12 object-contain ${selectedCare[group.name] === symbol ? 'brightness-0 invert' : ''}`}
+                            src={`/symbols/${symbol.image}`}
+                            alt={symbol.description}
+                            className={`h-12 w-12 object-contain ${selectedCare[group.name] === symbol.code ? 'brightness-0 invert' : ''}`}
                           />
-                          <span className="mt-1 text-xs font-medium">{symbol}</span>
+                          <span className="mt-1 text-xs font-medium">{symbol.code}</span>
                         </button>
                       ))}
                     </div>

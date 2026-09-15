@@ -41,6 +41,8 @@ export default function NewOrderPage() {
   const [quantities, setQuantities] = useState<Record<string, number>>({});
   const [selectedCare, setSelectedCare] = useState<Record<string, string>>({});
   const [message, setMessage] = useState('');
+  const [texTracerUrl, setTexTracerUrl] = useState('');
+  const [texTracerError, setTexTracerError] = useState('');
   const totalQuantity = useMemo(
     () => Object.values(quantities).reduce((sum, value) => sum + (Number(value) || 0), 0),
     [quantities],
@@ -55,6 +57,19 @@ export default function NewOrderPage() {
   const saveDraft = () => setMessage('Draft saved. You can return to edit this order before submitting.');
   const previewLabel = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    if (texTracerUrl) {
+      try {
+        const parsedUrl = new URL(texTracerUrl);
+        if (!['http:', 'https:'].includes(parsedUrl.protocol) || !parsedUrl.hostname) {
+          throw new Error('Invalid URL');
+        }
+      } catch {
+        setTexTracerError('Enter a valid URL starting with https:// or http://.');
+        setMessage('');
+        return;
+      }
+    }
+    setTexTracerError('');
     setMessage('English label preview is ready. Review it before submitting the order.');
   };
 
@@ -185,6 +200,24 @@ export default function NewOrderPage() {
                     ))}
                   </tbody>
                 </table>
+              </div>
+              <div className="mt-6 border-t border-border pt-6">
+                <label className="block">
+                  <span className="mb-2 block text-sm font-medium">Tex Tracer URL</span>
+                  <input
+                    className={`input ${texTracerError ? 'border-red-600 focus:border-red-600' : ''}`}
+                    type="url"
+                    value={texTracerUrl}
+                    onChange={(event) => {
+                      setTexTracerUrl(event.target.value);
+                      if (texTracerError) setTexTracerError('');
+                    }}
+                    placeholder="https://example.com/tex-tracer/..."
+                    aria-invalid={Boolean(texTracerError)}
+                    aria-describedby={texTracerError ? 'tex-tracer-error' : undefined}
+                  />
+                  {texTracerError && <p id="tex-tracer-error" className="mt-2 text-sm text-red-600">{texTracerError}</p>}
+                </label>
               </div>
             </div>
           </div>

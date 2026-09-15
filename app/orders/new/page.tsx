@@ -137,6 +137,7 @@ export default function NewOrderPage() {
           <div className="mt-6 grid gap-6 lg:grid-cols-[1fr_1.2fr]">
             <div>
               <h3 className="text-sm font-semibold uppercase tracking-[0.15em] text-muted">Care instructions</h3>
+              <p className="mt-2 text-sm text-muted">A symbol with an outline is selected. Click it again to clear the selection.</p>
               <div className="mt-4 space-y-5">
                 {careGroups.map((group) => (
                   <div key={group.name}>

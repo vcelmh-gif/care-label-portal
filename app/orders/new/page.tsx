@@ -4,7 +4,15 @@ import Link from 'next/link';
 import { FormEvent, useMemo, useState } from 'react';
 import { careSymbols, careTexts, countries, fibers } from '@/lib/mock-data';
 
-const sizes = ['XS', 'S', 'M', 'L', 'XL', 'XXL', '3XL', 'S/M', 'M/L', 'L/XL', 'ONE SIZE'];
+const sizes = [
+  '65B', '65C', '65D',
+  '70A', '70B', '70C', '70D', '70E', '70F', '70G',
+  '75A', '75B', '75C', '75D', '75E', '75F', '75G',
+  '80A', '80B', '80C', '80D', '80E', '80F', '80G',
+  '85B', '85C', '85D', '85E', '85F',
+  '90B', '90C', '90D', '90E',
+  'XS', 'S', 'M', 'L', 'XL', 'XXL', '3XL', 'S/M', 'M/L', 'L/XL', 'ONE SIZE',
+];
 const fiberAreas = ['SHELL', 'SHELL 1', 'SHELL 2', 'LINING', 'PADDING', 'FILLING'];
 const careGroups = ['Washing', 'Bleaching', 'Drying', 'Ironing', 'Dry Cleaning'];
 

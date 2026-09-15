@@ -1,8 +1,9 @@
 'use client';
 
 import Link from 'next/link';
-import { FormEvent, useMemo, useState } from 'react';
-import { careTexts, countries, fibers } from '@/lib/mock-data';
+import { FormEvent, Suspense, useMemo, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
+import { careTexts, countries, fibers, orders } from '@/lib/mock-data';
 
 const sizes = [
   '65B', '65C', '65D',
@@ -37,9 +38,22 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
   );
 }
 
-export default function NewOrderPage() {
-  const [quantities, setQuantities] = useState<Record<string, number>>({});
-  const [selectedCare, setSelectedCare] = useState<Record<string, string>>({});
+function NewOrderForm() {
+  const searchParams = useSearchParams();
+  const editId = searchParams.get('edit');
+  const existingOrder = editId ? orders.find((order) => order.id === editId) : undefined;
+  const [quantities, setQuantities] = useState<Record<string, number>>(
+    Object.fromEntries((existingOrder?.sizes ?? []).map((size) => [size, 1])),
+  );
+  const [selectedCare, setSelectedCare] = useState<Record<string, string>>(
+    existingOrder ? {
+      Washing: existingOrder.careSymbols.washing[0],
+      Bleaching: existingOrder.careSymbols.bleaching[0],
+      Drying: existingOrder.careSymbols.drying[0],
+      Ironing: existingOrder.careSymbols.ironing[0],
+      'Dry Cleaning': existingOrder.careSymbols.dryCleaning[0],
+    } : {},
+  );
   const [message, setMessage] = useState('');
   const [texTracerUrl, setTexTracerUrl] = useState('');
   const [texTracerError, setTexTracerError] = useState('');
@@ -63,6 +77,7 @@ export default function NewOrderPage() {
         if (!['http:', 'https:'].includes(parsedUrl.protocol) || !parsedUrl.hostname) {
           throw new Error('Invalid URL');
         }
+
       } catch {
         setTexTracerError('Enter a valid URL starting with https:// or http://.');
         setMessage('');
@@ -78,7 +93,7 @@ export default function NewOrderPage() {
       <div className="flex items-center justify-between gap-4">
         <div>
           <p className="text-sm uppercase tracking-[0.2em] text-muted">Orders / New</p>
-          <h1 className="mt-2 text-3xl font-semibold">Marlies Dekkers Care label order form</h1>
+          <h1 className="mt-2 text-3xl font-semibold">{existingOrder ? `Edit draft ${existingOrder.id}` : 'Marlies Dekkers Care label order form'}</h1>
           <p className="mt-2 text-sm text-muted">Complete the form using the same structure as the Marlies Dekkers order sheet.</p>
         </div>
         <Link href="/orders" className="button-secondary">Back to orders</Link>
@@ -93,15 +108,15 @@ export default function NewOrderPage() {
             <Field label="Ship mode">
               <select className="select"><option>Air</option><option>Sea</option><option>Courier</option></select>
             </Field>
-            <Field label="Expected delivery date"><input className="input" type="date" defaultValue="2026-12-05" /></Field>
-            <Field label="PO no."><input className="input" defaultValue="PO-2050" /></Field>
-            <Field label="Acc. no."><input className="input" defaultValue="AC-9904" /></Field>
-            <Field label="Shape #"><input className="input" defaultValue="SH-440" /></Field>
-            <Field label="Shape name"><input className="input" defaultValue="Slim Fit Shirt" /></Field>
-            <Field label="Style #"><input className="input" defaultValue="ST-48" /></Field>
-            <Field label="Item no."><input className="input" defaultValue="IT-810" /></Field>
+            <Field label="Expected delivery date"><input className="input" type="date" defaultValue={existingOrder?.expectedDeliveryDate ?? '2026-12-05'} /></Field>
+            <Field label="PO no."><input className="input" defaultValue={existingOrder?.poNumber ?? 'PO-2050'} /></Field>
+            <Field label="Acc. no."><input className="input" defaultValue={existingOrder?.accountNumber ?? 'AC-9904'} /></Field>
+            <Field label="Shape #"><input className="input" defaultValue={existingOrder?.shapeNo ?? 'SH-440'} /></Field>
+            <Field label="Shape name"><input className="input" defaultValue={existingOrder?.shapeName ?? 'Slim Fit Shirt'} /></Field>
+            <Field label="Style #"><input className="input" defaultValue={existingOrder?.styleNo ?? 'ST-48'} /></Field>
+            <Field label="Item no."><input className="input" defaultValue={existingOrder?.itemNo ?? 'IT-810'} /></Field>
             <Field label="Made in">
-              <select className="select">{countries.map((country) => <option key={country}>{country}</option>)}</select>
+              <select className="select" defaultValue={existingOrder?.madeInCountry ?? countries[0]}>{countries.map((country) => <option key={country}>{country}</option>)}</select>
             </Field>
           </div>
         </section>
@@ -232,7 +247,7 @@ export default function NewOrderPage() {
                 {[1, 2, 3, 4].map((line) => (
                   <div className="flex items-center gap-3" key={line}>
                     <span className="w-5 text-sm text-muted">{line}</span>
-                    <select className="select" defaultValue=""><option value="">Select care text</option>{careTexts.map((text) => <option key={text}>{text}</option>)}</select>
+                    <select className="select" defaultValue={existingOrder?.careText[line - 1] ?? ''}><option value="">Select care text</option>{careTexts.map((text) => <option key={text}>{text}</option>)}</select>
                   </div>
                 ))}
               </div>
@@ -253,5 +268,13 @@ export default function NewOrderPage() {
         </div>
       </form>
     </main>
+  );
+}
+
+export default function NewOrderPage() {
+  return (
+    <Suspense fallback={<main className="mx-auto max-w-6xl px-6 py-10"><p className="text-sm text-muted">Loading order form...</p></main>}>
+      <NewOrderForm />
+    </Suspense>
   );
 }

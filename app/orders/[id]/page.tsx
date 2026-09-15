@@ -40,7 +40,7 @@ export default function OrderDetailPage({ params }: { params: { id: string } }) 
         </div>
         <div className="flex flex-wrap justify-end gap-3">
           <Link href="/orders" className="button-secondary">Back</Link>
-          {status === 'DRAFT' && <Link href={`/orders/new?duplicate=${order.id}`} className="button-secondary">Edit draft</Link>}
+          {status === 'DRAFT' && <Link href={`/orders/new?edit=${order.id}`} className="button-secondary">Edit draft</Link>}
           <button type="button" className="button-secondary" onClick={downloadPdf}>Download PDF</button>
           {status === 'DRAFT' && <button type="button" className="button-primary" onClick={submitOrder}>Submit order</button>}
         </div>

@@ -14,7 +14,13 @@ const sizes = [
   'XS', 'S', 'M', 'L', 'XL', 'XXL', '3XL', 'S/M', 'M/L', 'L/XL', 'ONE SIZE',
 ];
 const fiberRows = [1, 2, 3, 4, 5, 6];
-const careGroups = ['Washing', 'Bleaching', 'Drying', 'Ironing', 'Dry Cleaning'];
+const careGroups = [
+  { name: 'Washing', code: 'W2', icon: 'W', description: 'Wash symbol' },
+  { name: 'Bleaching', code: 'B1', icon: 'B', description: 'Bleach symbol' },
+  { name: 'Drying', code: 'D1', icon: 'D', description: 'Dry symbol' },
+  { name: 'Ironing', code: 'I1', icon: 'I', description: 'Iron symbol' },
+  { name: 'Dry Cleaning', code: 'DC1', icon: 'DC', description: 'Dry clean symbol' },
+];
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
@@ -27,6 +33,9 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 
 export default function NewOrderPage() {
   const [quantities, setQuantities] = useState<Record<string, number>>({});
+  const [selectedCare, setSelectedCare] = useState<Record<string, string>>(
+    Object.fromEntries(careGroups.map((group) => [group.name, group.code])),
+  );
   const [message, setMessage] = useState('');
   const totalQuantity = useMemo(
     () => Object.values(quantities).reduce((sum, value) => sum + (Number(value) || 0), 0),
@@ -126,12 +135,23 @@ export default function NewOrderPage() {
               <h3 className="text-sm font-semibold uppercase tracking-[0.15em] text-muted">Care instructions</h3>
               <div className="mt-4 space-y-5">
                 {careGroups.map((group) => (
-                  <Field label={group} key={group}>
-                    <select className="select" defaultValue="">
-                      <option value="">Select symbol</option>
-                      {careSymbols.map((symbol) => <option key={symbol}>{symbol}</option>)}
-                    </select>
-                  </Field>
+                  <div key={group.name}>
+                    <p className="mb-2 text-sm font-medium">{group.name}</p>
+                    <div className="flex flex-wrap gap-3">
+                      {careSymbols.filter((symbol) => symbol.startsWith(group.code.replace('1', '').replace('2', ''))).map((symbol) => (
+                        <button
+                          type="button"
+                          key={symbol}
+                          onClick={() => setSelectedCare((current) => ({ ...current, [group.name]: symbol }))}
+                          className={`flex min-w-20 flex-col items-center rounded-lg border px-3 py-2 transition ${selectedCare[group.name] === symbol ? 'border-ink bg-ink text-white' : 'border-border bg-white hover:bg-stone-50'}`}
+                          aria-label={`${group.name}: ${group.description} ${symbol}`}
+                        >
+                          <span className={`flex h-10 w-10 items-center justify-center border-2 text-lg font-semibold ${selectedCare[group.name] === symbol ? 'border-white' : 'border-ink'}`}>{group.icon}</span>
+                          <span className="mt-1 text-xs font-medium">{symbol}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
                 ))}
               </div>
             </div>

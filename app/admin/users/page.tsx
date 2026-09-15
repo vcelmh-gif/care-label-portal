@@ -1,6 +1,17 @@
-import { users } from '@/lib/mock-data';
+'use client';
+
+import { useEffect, useState } from 'react';
+import { User } from '@/lib/types';
 
 export default function AdminUsersPage() {
+  const [users, setUsers] = useState<User[]>([]);
+
+  useEffect(() => {
+    fetch('/api/admin/users')
+      .then((response) => response.json())
+      .then((data: User[]) => setUsers(data));
+  }, []);
+
   return (
     <main className="mx-auto max-w-6xl px-6 py-10">
       <div>

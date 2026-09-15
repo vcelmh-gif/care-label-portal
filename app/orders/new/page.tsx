@@ -23,9 +23,9 @@ const careGroups = [
     ],
   },
   { name: 'Bleaching', symbols: [{ code: 'B1', image: 'image13.png', description: 'Do not bleach' }] },
-  { name: 'Drying', symbols: [{ code: 'D1', image: 'image17.png', description: 'Do not tumble dry' }] },
-  { name: 'Ironing', symbols: [{ code: 'I1', image: 'image15.png', description: 'Do not iron' }] },
   { name: 'Dry Cleaning', symbols: [{ code: 'DC1', image: 'image14.png', description: 'Do not dry-clean' }] },
+  { name: 'Ironing', symbols: [{ code: 'I1', image: 'image15.png', description: 'Do not iron' }] },
+  { name: 'Drying', symbols: [{ code: 'D1', image: 'image17.png', description: 'Do not tumble dry' }] },
 ];
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {

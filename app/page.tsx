@@ -47,9 +47,9 @@ export default function HomePage() {
                 <p className="mt-2 text-xs uppercase tracking-[0.2em] text-muted">Made in China</p>
               </div>
               <div className="mt-8 flex gap-3">
-                <span className="flex h-12 w-12 items-center justify-center rounded-full border border-ink text-xl">W</span>
-                <span className="flex h-12 w-12 items-center justify-center border border-ink text-xl">I</span>
-                <span className="flex h-12 w-12 items-center justify-center border border-ink text-xl">D</span>
+                <img src="/symbols/image19.png" alt="Machine wash symbol" className="h-12 w-12 object-contain" />
+                <img src="/symbols/image15.png" alt="Do not iron symbol" className="h-12 w-12 object-contain" />
+                <img src="/symbols/image17.png" alt="Do not tumble dry symbol" className="h-12 w-12 object-contain" />
               </div>
               <p className="mt-8 text-xs text-muted">95% Cotton / 5% Elastane</p>
             </div>

@@ -50,12 +50,13 @@ export default function OrdersPage() {
       </div>
       <div className="mt-8 card overflow-hidden">
         <table className="min-w-full divide-y divide-border text-left">
-          <thead className="bg-stone-50 text-sm text-muted"><tr><th className="px-6 py-3">Order</th><th className="px-6 py-3">Customer</th><th className="px-6 py-3">Status</th><th className="px-6 py-3">Delivery</th><th className="px-6 py-3">Action</th></tr></thead>
+          <thead className="bg-stone-50 text-sm text-muted"><tr><th className="px-6 py-3">Order</th><th className="px-6 py-3">Customer</th><th className="px-6 py-3">Total quantity</th><th className="px-6 py-3">Status</th><th className="px-6 py-3">Delivery</th><th className="px-6 py-3">Action</th></tr></thead>
           <tbody className="divide-y divide-border text-sm">
             {visibleOrders.map((order) => (
               <tr key={order.id}>
                 <td className="px-6 py-4 font-medium">{order.id}</td>
                 <td className="px-6 py-4">{order.customerName}</td>
+                <td className="px-6 py-4">{order.sizes.length} PC</td>
                 <td className="px-6 py-4"><span className="badge">{order.status}</span></td>
                 <td className="px-6 py-4">{order.expectedDeliveryDate}</td>
                 <td className="px-6 py-4"><Link href={`/orders/${order.id}`} className="text-ink underline">View</Link></td>

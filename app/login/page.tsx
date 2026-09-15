@@ -19,9 +19,8 @@ export default function LoginPage() {
           <button type="submit" className="button-primary w-full">Sign in</button>
         </form>
 
-        <div className="mt-6 flex items-center justify-between text-sm text-muted">
-          <Link href="/register" className="hover:text-ink">Create account</Link>
-          <Link href="/orders" className="hover:text-ink">Continue as guest</Link>
+        <div className="mt-6 text-sm text-muted">
+          Need an account? <Link href="/register" className="font-medium text-ink hover:underline">Create account</Link>
         </div>
       </div>
     </main>

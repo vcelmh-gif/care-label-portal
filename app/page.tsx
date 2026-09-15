@@ -43,7 +43,7 @@ export default function HomePage() {
                 <span>01</span>
               </div>
               <div className="mt-12 border-y border-ink py-6">
-                <p className="text-2xl font-semibold tracking-tight">Marlies Dekkers</p>
+                <p className="text-2xl font-semibold tracking-tight">Sample Label</p>
                 <p className="mt-2 text-xs uppercase tracking-[0.2em] text-muted">Made in China</p>
               </div>
               <div className="mt-8 flex gap-3">

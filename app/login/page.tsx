@@ -4,7 +4,8 @@ export default function LoginPage() {
   return (
     <main className="flex min-h-screen items-center justify-center bg-stone-50 px-6 py-10">
       <div className="w-full max-w-md card p-8">
-        <p className="text-sm uppercase tracking-[0.2em] text-muted">Care Label Portal</p>
+        <p className="text-sm uppercase tracking-[0.2em] text-muted">CASESTUDY</p>
+        <p className="mt-2 text-xs uppercase tracking-[0.2em] text-muted">Care Label Portal</p>
         <h1 className="mt-3 text-3xl font-semibold text-ink">Login</h1>
 
         <form className="mt-8 space-y-5">

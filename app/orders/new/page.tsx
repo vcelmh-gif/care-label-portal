@@ -13,7 +13,7 @@ const sizes = [
   '90B', '90C', '90D', '90E',
   'XS', 'S', 'M', 'L', 'XL', 'XXL', '3XL', 'S/M', 'M/L', 'L/XL', 'ONE SIZE',
 ];
-const fiberAreas = ['SHELL', 'SHELL 1', 'SHELL 2', 'LINING', 'PADDING', 'FILLING'];
+const fiberRows = [1, 2, 3, 4, 5, 6];
 const careGroups = ['Washing', 'Bleaching', 'Drying', 'Ironing', 'Dry Cleaning'];
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
@@ -139,11 +139,10 @@ export default function NewOrderPage() {
               <h3 className="text-sm font-semibold uppercase tracking-[0.15em] text-muted">Fiber content</h3>
               <div className="mt-4 overflow-x-auto">
                 <table className="min-w-full text-left text-sm">
-                  <thead className="border-b border-border text-muted"><tr><th className="px-3 py-3">Area</th><th className="px-3 py-3">Percentage</th><th className="px-3 py-3">Fibre</th></tr></thead>
+                  <thead className="border-b border-border text-muted"><tr><th className="px-3 py-3">Percentage</th><th className="px-3 py-3">Fibre</th></tr></thead>
                   <tbody>
-                    {fiberAreas.map((area) => (
-                      <tr key={area} className="border-b border-border">
-                        <td className="px-3 py-3 font-medium">{area}</td>
+                    {fiberRows.map((row) => (
+                      <tr key={row} className="border-b border-border">
                         <td className="px-3 py-3"><input className="input min-w-24" type="number" min="0" max="100" placeholder="%" /></td>
                         <td className="px-3 py-3"><select className="select min-w-40" defaultValue=""><option value="">Select fibre</option>{fibers.map((fiber) => <option key={fiber}>{fiber}</option>)}</select></td>
                       </tr>

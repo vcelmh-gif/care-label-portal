@@ -147,13 +147,13 @@ export default function NewOrderPage() {
                           type="button"
                           key={symbol.code}
                           onClick={() => setSelectedCare((current) => ({ ...current, [group.name]: symbol.code }))}
-                          className={`flex min-w-20 flex-col items-center rounded-lg border px-3 py-2 transition ${selectedCare[group.name] === symbol.code ? 'border-ink bg-ink text-white' : 'border-border bg-white hover:bg-stone-50'}`}
+                          className={`flex min-w-20 flex-col items-center rounded-lg border px-3 py-2 transition ${selectedCare[group.name] === symbol.code ? 'border-ink bg-white text-ink ring-2 ring-ink ring-offset-2' : 'border-border bg-white hover:bg-stone-50'}`}
                           aria-label={`${group.name}: ${symbol.description} ${symbol.code}`}
                         >
                           <img
                             src={`/symbols/${symbol.image}`}
                             alt={symbol.description}
-                            className={`h-12 w-12 object-contain ${selectedCare[group.name] === symbol.code ? 'brightness-0 invert' : ''}`}
+                            className="h-12 w-12 object-contain"
                           />
                         </button>
                       ))}

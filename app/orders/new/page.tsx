@@ -39,9 +39,7 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 
 export default function NewOrderPage() {
   const [quantities, setQuantities] = useState<Record<string, number>>({});
-  const [selectedCare, setSelectedCare] = useState<Record<string, string>>(
-    Object.fromEntries(careGroups.map((group) => [group.name, group.symbols[0].code])),
-  );
+  const [selectedCare, setSelectedCare] = useState<Record<string, string>>({});
   const [message, setMessage] = useState('');
   const totalQuantity = useMemo(
     () => Object.values(quantities).reduce((sum, value) => sum + (Number(value) || 0), 0),
@@ -157,7 +155,6 @@ export default function NewOrderPage() {
                             alt={symbol.description}
                             className={`h-12 w-12 object-contain ${selectedCare[group.name] === symbol.code ? 'brightness-0 invert' : ''}`}
                           />
-                          <span className="mt-1 text-xs font-medium">{symbol.code}</span>
                         </button>
                       ))}
                     </div>

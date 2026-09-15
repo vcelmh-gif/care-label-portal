@@ -5,6 +5,15 @@ import { useState } from 'react';
 import { jsPDF } from 'jspdf';
 import { orders } from '@/lib/mock-data';
 
+const careSymbolImages: Record<string, string> = {
+  W1: 'image18.png',
+  W2: 'image19.png',
+  B1: 'image13.png',
+  D1: 'image17.png',
+  I1: 'image15.png',
+  DC1: 'image14.png',
+};
+
 export default function OrderDetailPage({ params }: { params: { id: string } }) {
   const order = orders.find((entry) => entry.id === params.id) ?? orders[0];
   const [status, setStatus] = useState(order.status);
@@ -68,6 +77,19 @@ export default function OrderDetailPage({ params }: { params: { id: string } }) 
             <p className="text-xs uppercase tracking-[0.2em] text-muted">Made in {order.madeInCountry}</p>
             <p className="mt-4 text-lg font-semibold">{order.shapeName}</p>
             <ul className="mt-4 space-y-2 text-sm text-muted">{order.fibers.map((fiber) => <li key={fiber.name}>{fiber.percentage}% {fiber.name}</li>)}</ul>
+            <div className="mt-6 border-t border-border pt-4">
+              <p className="text-xs uppercase tracking-[0.2em] text-muted">Care instructions</p>
+              <div className="mt-3 flex flex-wrap gap-3">
+                {Object.values(order.careSymbols).flat().map((symbol) => (
+                  <img
+                    key={symbol}
+                    src={`/symbols/${careSymbolImages[symbol]}`}
+                    alt={symbol}
+                    className="h-12 w-12 object-contain"
+                  />
+                ))}
+              </div>
+            </div>
             <div className="mt-6 border-t border-border pt-4 text-sm text-muted">{order.careText.map((text) => <p key={text}>{text}</p>)}</div>
           </div>
         </div>

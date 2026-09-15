@@ -67,6 +67,7 @@ export default function OrderDetailPage({ params }: { params: { id: string } }) 
             <div><p className="text-sm text-muted">Item No</p><p className="mt-1 font-medium">{order.itemNo}</p></div>
             <div><p className="text-sm text-muted">Delivery</p><p className="mt-1 font-medium">{order.expectedDeliveryDate}</p></div>
             <div><p className="text-sm text-muted">Country of Origin</p><p className="mt-1 font-medium">{order.madeInCountry}</p></div>
+            <div><p className="text-sm text-muted">Total quantity</p><p className="mt-1 font-medium">{order.sizes.length} PC</p></div>
           </div>
           <div className="mt-8"><h2 className="text-lg font-semibold">Fiber content</h2><ul className="mt-3 space-y-2 text-muted">{order.fibers.map((fiber) => <li key={fiber.name}>{fiber.name}: {fiber.percentage}%</li>)}</ul></div>
         </div>

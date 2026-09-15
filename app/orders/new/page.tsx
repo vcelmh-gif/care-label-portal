@@ -1,0 +1,311 @@
+'use client';
+
+import Link from 'next/link';
+import { FormEvent, Suspense, useMemo, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
+import { careTexts, countries, fibers, orders } from '@/lib/mock-data';
+
+const sizes = [
+  '65B', '65C', '65D',
+  '70A', '70B', '70C', '70D', '70E', '70F', '70G',
+  '75A', '75B', '75C', '75D', '75E', '75F', '75G',
+  '80A', '80B', '80C', '80D', '80E', '80F', '80G',
+  '85B', '85C', '85D', '85E', '85F',
+  '90B', '90C', '90D', '90E',
+  'XS', 'S', 'M', 'L', 'XL', 'XXL', '3XL', 'S/M', 'M/L', 'L/XL', 'ONE SIZE',
+];
+const fiberRows = [1, 2, 3, 4, 5, 6];
+const careGroups = [
+  {
+    name: 'Washing',
+    symbols: [
+      { code: 'W1', image: 'image18.png', description: 'Hand wash at 30 degrees' },
+      { code: 'W2', image: 'image19.png', description: 'Machine wash at 30 degrees or less on reduced cycle' },
+    ],
+  },
+  { name: 'Bleaching', symbols: [{ code: 'B1', image: 'image13.png', description: 'Do not bleach' }] },
+  { name: 'Dry Cleaning', symbols: [{ code: 'DC1', image: 'image14.png', description: 'Do not dry-clean' }] },
+  { name: 'Ironing', symbols: [{ code: 'I1', image: 'image15.png', description: 'Do not iron' }] },
+  { name: 'Drying', symbols: [{ code: 'D1', image: 'image17.png', description: 'Do not tumble dry' }] },
+];
+
+function Field({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <label className="block">
+      <span className="mb-2 block text-sm font-medium">{label}</span>
+      {children}
+    </label>
+  );
+}
+
+function NewOrderForm() {
+  const searchParams = useSearchParams();
+  const editId = searchParams.get('edit');
+  const existingOrder = editId ? orders.find((order) => order.id === editId) : undefined;
+  const [quantities, setQuantities] = useState<Record<string, number>>(
+    Object.fromEntries((existingOrder?.sizes ?? []).map((size) => [size, 1])),
+  );
+  const [selectedCare, setSelectedCare] = useState<Record<string, string>>(
+    existingOrder ? {
+      Washing: existingOrder.careSymbols.washing[0],
+      Bleaching: existingOrder.careSymbols.bleaching[0],
+      Drying: existingOrder.careSymbols.drying[0],
+      Ironing: existingOrder.careSymbols.ironing[0],
+      'Dry Cleaning': existingOrder.careSymbols.dryCleaning[0],
+    } : {},
+  );
+  const [fiberContent, setFiberContent] = useState(
+    fiberRows.map((_, index) => ({
+      percentage: existingOrder?.fibers[index]?.percentage.toString() ?? '',
+      name: existingOrder?.fibers[index]?.name ?? '',
+    })),
+  );
+  const [message, setMessage] = useState('');
+  const [texTracerUrl, setTexTracerUrl] = useState('');
+  const [texTracerError, setTexTracerError] = useState('');
+  const totalQuantity = useMemo(
+    () => Object.values(quantities).reduce((sum, value) => sum + (Number(value) || 0), 0),
+    [quantities],
+  );
+  const roundUpQuantity = totalQuantity === 0 ? 0 : Math.max(50, totalQuantity);
+  const totalAmount = (roundUpQuantity * 0.12).toFixed(2);
+
+  const updateQuantity = (size: string, value: string) => {
+    setQuantities((current) => ({ ...current, [size]: Number(value) || 0 }));
+  };
+
+  const updateFiber = (index: number, field: 'percentage' | 'name', value: string) => {
+    setFiberContent((current) => current.map((fiber, fiberIndex) => (
+      fiberIndex === index ? { ...fiber, [field]: value } : fiber
+    )));
+  };
+
+  const saveDraft = () => setMessage('Draft saved. You can return to edit this order before submitting.');
+  const previewLabel = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (texTracerUrl) {
+      try {
+        const parsedUrl = new URL(texTracerUrl);
+        if (!['http:', 'https:'].includes(parsedUrl.protocol) || !parsedUrl.hostname) {
+          throw new Error('Invalid URL');
+        }
+
+      } catch {
+        setTexTracerError('Enter a valid URL starting with https:// or http://.');
+        setMessage('');
+        return;
+      }
+    }
+    setTexTracerError('');
+    setMessage('English label preview is ready. Review it before submitting the order.');
+  };
+
+  return (
+    <main className="mx-auto max-w-6xl px-6 py-10">
+      <div className="flex items-center justify-between gap-4">
+        <div>
+          <p className="text-sm uppercase tracking-[0.2em] text-muted">Orders / New</p>
+          <h1 className="mt-2 text-3xl font-semibold">{existingOrder ? `Edit draft ${existingOrder.id}` : 'Marlies Dekkers Care label order form'}</h1>
+          <p className="mt-2 text-sm text-muted">Complete the form using the same structure as the Marlies Dekkers order sheet.</p>
+        </div>
+        <Link href="/orders" className="button-secondary">Back to orders</Link>
+      </div>
+
+      <form className="mt-8 space-y-6" onSubmit={previewLabel}>
+        {message && <div className="rounded-lg border border-border bg-stone-50 p-4 text-sm">{message}</div>}
+        <section className="card p-8">
+          <h2 className="text-lg font-semibold">Order information</h2>
+          <div className="mt-5 grid gap-5 md:grid-cols-3">
+            <Field label="Date"><input className="input" type="date" defaultValue="2026-09-15" /></Field>
+            <Field label="Ship mode">
+              <select className="select"><option>Air</option><option>Sea</option><option>Courier</option></select>
+            </Field>
+            <Field label="Expected delivery date"><input className="input" type="date" defaultValue={existingOrder?.expectedDeliveryDate ?? '2026-12-05'} /></Field>
+            <Field label="PO no."><input className="input" defaultValue={existingOrder?.poNumber ?? 'PO-2050'} /></Field>
+            <Field label="Acc. no."><input className="input" defaultValue={existingOrder?.accountNumber ?? 'AC-9904'} /></Field>
+            <Field label="Shape #"><input className="input" defaultValue={existingOrder?.shapeNo ?? 'SH-440'} /></Field>
+            <Field label="Shape name"><input className="input" defaultValue={existingOrder?.shapeName ?? 'Slim Fit Shirt'} /></Field>
+            <Field label="Style #"><input className="input" defaultValue={existingOrder?.styleNo ?? 'ST-48'} /></Field>
+            <Field label="Item no."><input className="input" defaultValue={existingOrder?.itemNo ?? 'IT-810'} /></Field>
+            <Field label="Made in">
+              <select className="select" defaultValue={existingOrder?.madeInCountry ?? countries[0]}>{countries.map((country) => <option key={country}>{country}</option>)}</select>
+            </Field>
+          </div>
+        </section>
+
+        <section className="grid gap-6 lg:grid-cols-2">
+          {(['Bill to', 'Ship to'] as const).map((addressType) => (
+            <div className="card p-8" key={addressType}>
+              <h2 className="text-lg font-semibold">{addressType}</h2>
+              <div className="mt-5 space-y-5">
+                <Field label="Company name"><input className="input" defaultValue={addressType === 'Bill to' ? 'Fashion Source Ltd.' : 'Marlies Dekkers Warehouse'} /></Field>
+                <Field label="Address"><textarea className="textarea" rows={2} defaultValue="12 Fashion Avenue" /></Field>
+                <div className="grid gap-5 sm:grid-cols-2">
+                  <Field label="Postal code"><input className="input" defaultValue="00000" /></Field>
+                  <Field label="Country">
+                    <select className="select">{countries.map((country) => <option key={country}>{country}</option>)}</select>
+                  </Field>
+                </div>
+                <Field label="TEL / ATTN"><input className="input" defaultValue="+852 0000 0000" /></Field>
+              </div>
+            </div>
+          ))}
+        </section>
+
+        <section className="card p-8">
+          <div className="flex items-end justify-between gap-4">
+            <div>
+              <h2 className="text-lg font-semibold">Size matrix</h2>
+              <p className="mt-1 text-sm text-muted">Enter the requested quantity for each size.</p>
+            </div>
+            <span className="badge">Total: {totalQuantity} PC</span>
+          </div>
+          <div className="mt-5 grid grid-cols-2 gap-4 sm:grid-cols-4 lg:grid-cols-6">
+            {sizes.map((size) => (
+              <Field label={size} key={size}>
+                <input className="input" type="number" min="0" placeholder="0" value={quantities[size] ?? ''} onChange={(event) => updateQuantity(size, event.target.value)} />
+              </Field>
+            ))}
+          </div>
+          <div className="mt-6 grid gap-5 border-t border-border pt-6 sm:grid-cols-3">
+            <div><p className="text-sm text-muted">Total quantity (PC)</p><p className="mt-1 text-xl font-semibold">{totalQuantity || '—'}</p></div>
+            <div><p className="text-sm text-muted">Total round-up qty (PC)</p><p className="mt-1 text-xl font-semibold">{roundUpQuantity || '—'}</p></div>
+            <div><p className="text-sm text-muted">Total amount (USD)</p><p className="mt-1 text-xl font-semibold">{totalQuantity ? `$${totalAmount}` : '—'}</p></div>
+          </div>
+        </section>
+
+        <section className="card p-8">
+          <h2 className="text-lg font-semibold">Care instructions + fibre content</h2>
+          <div className="mt-6 grid gap-6 lg:grid-cols-[1fr_1.2fr]">
+            <div>
+              <h3 className="text-sm font-semibold uppercase tracking-[0.15em] text-muted">Care instructions</h3>
+              <p className="mt-2 text-sm text-muted">A symbol with an outline is selected. Click it again to clear the selection.</p>
+              <div className="mt-4 space-y-5">
+                {careGroups.map((group) => (
+                  <div key={group.name}>
+                    <p className="mb-2 text-sm font-medium">{group.name}</p>
+                    <div className="flex flex-wrap gap-3">
+                      {group.symbols.map((symbol) => (
+                        <button
+                          type="button"
+                          key={symbol.code}
+                          onClick={() => setSelectedCare((current) => {
+                            const next = { ...current };
+                            if (next[group.name] === symbol.code) {
+                              delete next[group.name];
+                            } else {
+                              next[group.name] = symbol.code;
+                            }
+                            return next;
+                          })}
+                          className={`flex min-w-20 flex-col items-center rounded-lg border px-3 py-2 transition ${selectedCare[group.name] === symbol.code ? 'border-ink bg-white text-ink ring-2 ring-ink ring-offset-2' : 'border-border bg-white hover:bg-stone-50'}`}
+                          aria-label={`${group.name}: ${symbol.description} ${symbol.code}`}
+                        >
+                          <img
+                            src={`/symbols/${symbol.image}`}
+                            alt={symbol.description}
+                            className="h-12 w-12 object-contain"
+                          />
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div>
+              <h3 className="text-sm font-semibold uppercase tracking-[0.15em] text-muted">Fiber content</h3>
+              <div className="mt-4 overflow-x-auto">
+                <table className="min-w-full text-left text-sm">
+                  <thead className="border-b border-border text-muted"><tr><th className="px-3 py-3">Percentage</th><th className="px-3 py-3">Fibre</th></tr></thead>
+                  <tbody>
+                    {fiberContent.map((fiberContentRow, index) => (
+                      <tr key={fiberRows[index]} className="border-b border-border">
+                        <td className="px-3 py-3">
+                          <input
+                            className="input min-w-24"
+                            type="number"
+                            min="0"
+                            max="100"
+                            placeholder="%"
+                            value={fiberContentRow.percentage}
+                            onChange={(event) => updateFiber(index, 'percentage', event.target.value)}
+                          />
+                        </td>
+                        <td className="px-3 py-3">
+                          <select
+                            className="select min-w-40"
+                            value={fiberContentRow.name}
+                            onChange={(event) => updateFiber(index, 'name', event.target.value)}
+                          >
+                            <option value="">Select fibre</option>
+                            {fibers.map((fiber) => <option key={fiber}>{fiber}</option>)}
+                          </select>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <div className="mt-6 border-t border-border pt-6">
+                <label className="block">
+                  <span className="mb-2 block text-sm font-medium">Tex Tracer URL</span>
+                  <input
+                    className={`input ${texTracerError ? 'border-red-600 focus:border-red-600' : ''}`}
+                    type="url"
+                    value={texTracerUrl}
+                    onChange={(event) => {
+                      setTexTracerUrl(event.target.value);
+                      if (texTracerError) setTexTracerError('');
+                    }}
+                    placeholder="https://example.com/tex-tracer/..."
+                    aria-invalid={Boolean(texTracerError)}
+                    aria-describedby={texTracerError ? 'tex-tracer-error' : undefined}
+                  />
+                  {texTracerError && <p id="tex-tracer-error" className="mt-2 text-sm text-red-600">{texTracerError}</p>}
+                </label>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section className="card p-8">
+          <div className="grid gap-6 lg:grid-cols-2">
+            <div>
+              <h2 className="text-lg font-semibold">Care text</h2>
+              <p className="mt-1 text-sm text-muted">Choose up to four standard lines.</p>
+              <div className="mt-4 space-y-3">
+                {[1, 2, 3, 4].map((line) => (
+                  <div className="flex items-center gap-3" key={line}>
+                    <span className="w-5 text-sm text-muted">{line}</span>
+                    <select className="select" defaultValue={existingOrder?.careText[line - 1] ?? ''}><option value="">Select care text</option>{careTexts.map((text) => <option key={text}>{text}</option>)}</select>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div>
+              <h2 className="text-lg font-semibold">Special care text</h2>
+              <p className="mt-1 text-sm text-muted">Manual input, up to five additional lines.</p>
+              <div className="mt-4 space-y-3">
+                {[1, 2, 3, 4, 5].map((line) => <input className="input" key={line} placeholder={`Special care text ${line}`} />)}
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <div className="flex justify-end gap-3">
+          <button type="button" className="button-secondary" onClick={saveDraft}>Save as draft</button>
+          <button type="submit" className="button-primary">Preview label</button>
+        </div>
+      </form>
+    </main>
+  );
+}
+
+export default function NewOrderPage() {
+  return (
+    <Suspense fallback={<main className="mx-auto max-w-6xl px-6 py-10"><p className="text-sm text-muted">Loading order form...</p></main>}>
+      <NewOrderForm />
+    </Suspense>
+  );
+}

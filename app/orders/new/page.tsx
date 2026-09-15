@@ -78,7 +78,7 @@ export default function NewOrderPage() {
       <div className="flex items-center justify-between gap-4">
         <div>
           <p className="text-sm uppercase tracking-[0.2em] text-muted">Orders / New</p>
-          <h1 className="mt-2 text-3xl font-semibold">Care label order form</h1>
+          <h1 className="mt-2 text-3xl font-semibold">Marlies Dekkers Care label order form</h1>
           <p className="mt-2 text-sm text-muted">Complete the form using the same structure as the Marlies Dekkers order sheet.</p>
         </div>
         <Link href="/orders" className="button-secondary">Back to orders</Link>

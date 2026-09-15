@@ -22,6 +22,7 @@ export default function LoginPage() {
         <div className="mt-6 text-sm text-muted">
           Need an account? <Link href="/register" className="font-medium text-ink hover:underline">Create account</Link>
         </div>
+        <Link href="/forgot-password" className="mt-3 block text-sm text-muted hover:text-ink hover:underline">Forgot password?</Link>
       </div>
     </main>
   );

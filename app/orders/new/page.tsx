@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useMemo, useState } from 'react';
+import { FormEvent, useMemo, useState } from 'react';
 import { careSymbols, careTexts, countries, fibers } from '@/lib/mock-data';
 
 const sizes = ['XS', 'S', 'M', 'L', 'XL', 'XXL', '3XL', 'S/M', 'M/L', 'L/XL', 'ONE SIZE'];
@@ -19,6 +19,7 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 
 export default function NewOrderPage() {
   const [quantities, setQuantities] = useState<Record<string, number>>({});
+  const [message, setMessage] = useState('');
   const totalQuantity = useMemo(
     () => Object.values(quantities).reduce((sum, value) => sum + (Number(value) || 0), 0),
     [quantities],
@@ -28,6 +29,12 @@ export default function NewOrderPage() {
 
   const updateQuantity = (size: string, value: string) => {
     setQuantities((current) => ({ ...current, [size]: Number(value) || 0 }));
+  };
+
+  const saveDraft = () => setMessage('Draft saved. You can return to edit this order before submitting.');
+  const previewLabel = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setMessage('English label preview is ready. Review it before submitting the order.');
   };
 
   return (
@@ -41,7 +48,8 @@ export default function NewOrderPage() {
         <Link href="/orders" className="button-secondary">Back to orders</Link>
       </div>
 
-      <form className="mt-8 space-y-6">
+      <form className="mt-8 space-y-6" onSubmit={previewLabel}>
+        {message && <div className="rounded-lg border border-border bg-stone-50 p-4 text-sm">{message}</div>}
         <section className="card p-8">
           <h2 className="text-lg font-semibold">Order information</h2>
           <div className="mt-5 grid gap-5 md:grid-cols-3">
@@ -164,7 +172,7 @@ export default function NewOrderPage() {
         </section>
 
         <div className="flex justify-end gap-3">
-          <button type="button" className="button-secondary">Save as draft</button>
+          <button type="button" className="button-secondary" onClick={saveDraft}>Save as draft</button>
           <button type="submit" className="button-primary">Preview label</button>
         </div>
       </form>

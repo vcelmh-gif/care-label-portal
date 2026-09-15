@@ -47,6 +47,7 @@ export default function HomePage() {
           <div className="mt-6 space-y-3">
             <Link href="/orders" className="block rounded-lg border border-border px-4 py-3 hover:bg-stone-50">Orders dashboard</Link>
             <Link href="/admin/users" className="block rounded-lg border border-border px-4 py-3 hover:bg-stone-50">Admin users</Link>
+            <Link href="/admin/roles" className="block rounded-lg border border-border px-4 py-3 hover:bg-stone-50">Role management</Link>
             <Link href="/admin/settings" className="block rounded-lg border border-border px-4 py-3 hover:bg-stone-50">System settings</Link>
           </div>
         </div>

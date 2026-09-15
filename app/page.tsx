@@ -16,7 +16,10 @@ export default function HomePage() {
               <span className="h-2 w-2 rounded-full bg-red-500" />
               <span className="h-2 w-2 rounded-full bg-yellow-400" />
               <span className="h-2 w-2 rounded-full bg-sky-400" />
-              CASESTUDY / PORTAL
+              <a href="https://www.casestudy.global" target="_blank" rel="noreferrer" className="transition hover:text-ink">
+                CASESTUDY
+              </a>
+              / PORTAL
             </div>
             <h1 className="mt-10 max-w-4xl text-6xl font-bold leading-[0.92] tracking-[-0.06em] text-ink sm:text-7xl lg:text-[7.4rem]">
               Designed
@@ -83,7 +86,7 @@ export default function HomePage() {
       </section>
 
       <footer className="mx-auto flex max-w-7xl flex-col gap-4 border-t border-border px-6 py-8 text-xs uppercase tracking-[0.2em] text-muted sm:flex-row sm:items-center sm:justify-between lg:px-10">
-        <span>CASESTUDY</span>
+        <a href="https://www.casestudy.global" target="_blank" rel="noreferrer" className="transition hover:text-ink">CASESTUDY</a>
         <span>Care Label Portal</span>
         <span>Designed to deliver</span>
       </footer>

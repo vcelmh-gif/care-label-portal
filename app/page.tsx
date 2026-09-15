@@ -72,7 +72,6 @@ export default function HomePage() {
             <p className="text-xs font-semibold uppercase tracking-[0.28em] text-muted">The workspace</p>
             <h2 className="mt-5 max-w-2xl text-4xl font-semibold leading-tight tracking-[-0.04em] sm:text-5xl">Everything needed to move from brief to label.</h2>
           </div>
-          <Link href="/orders" className="text-sm font-medium underline underline-offset-4">Explore orders</Link>
         </div>
         <div className="mt-10 grid gap-10 md:grid-cols-3">
           {features.map(([number, title, description]) => (

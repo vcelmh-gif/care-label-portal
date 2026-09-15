@@ -21,19 +21,23 @@ export default function RegisterPage() {
       return;
     }
 
-    const response = await fetch('/api/admin/users', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name, email }),
-    });
-    const result = await response.json();
-    if (!response.ok) {
-      setError(result.error ?? 'Unable to create the account.');
-      return;
-    }
+    try {
+      const response = await fetch('/api/admin/users', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, email }),
+      });
+      const result = await response.json().catch(() => null);
+      if (!response.ok) {
+        setError(result?.error ?? 'Unable to create the account.');
+        return;
+      }
 
-    event.currentTarget.reset();
-    setMessage('Account request created. An administrator must approve it before you can log in.');
+      event.currentTarget.reset();
+      setMessage('Account request created. An administrator must approve it before you can log in.');
+    } catch {
+      setError('Unable to reach the account service. Please try again.');
+    }
   };
 
   return (

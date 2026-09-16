@@ -1,7 +1,11 @@
 import { NextResponse } from 'next/server';
-import { orders } from '@/lib/mock-data';
+import { prisma } from '@/lib/prisma';
 
 export async function GET(_: Request, { params }: { params: { id: string } }) {
-  const order = orders.find((entry) => entry.id === params.id) ?? orders[0];
+  const order = await prisma.order.findUnique({
+    where: { id: params.id },
+    include: { fibers: true, sizes: true, careSymbols: true, careTexts: { orderBy: { position: 'asc' } } },
+  });
+  if (!order) return NextResponse.json({ error: 'Order not found.' }, { status: 404 });
   return NextResponse.json(order);
 }

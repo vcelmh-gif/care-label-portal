@@ -10,14 +10,29 @@ export default function LoginPage() {
   const [password, setPassword] = useState('password123');
   const [error, setError] = useState('');
 
-  const submit = (event: FormEvent<HTMLFormElement>) => {
+  const submit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    setError('');
     if (!email.trim() || !password.trim()) {
       setError('Enter your email and password to continue.');
       return;
     }
-    window.localStorage.setItem('care-label-auth', JSON.stringify({ email: email.trim().toLowerCase() }));
-    router.push('/orders');
+    try {
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      });
+      const result = await response.json().catch(() => null);
+      if (!response.ok) {
+        setError(result?.error ?? 'Unable to sign in.');
+        return;
+      }
+      window.localStorage.setItem('care-label-auth', JSON.stringify(result.user));
+      router.push('/orders');
+    } catch {
+      setError('Unable to reach the account service. Please try again.');
+    }
   };
 
   return (

@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { FormEvent, Suspense, useMemo, useState } from 'react';
+import { FormEvent, MouseEvent, Suspense, useMemo, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { careTexts, countries, fibers, orders } from '@/lib/mock-data';
 
@@ -80,8 +80,38 @@ function NewOrderForm() {
     )));
   };
 
-  const saveDraft = () => setMessage('Draft saved. You can return to edit this order before submitting.');
-  const previewLabel = (event: FormEvent<HTMLFormElement>) => {
+  const persistDraft = async (form: HTMLFormElement) => {
+    const formData = new FormData(form);
+    const payload = {
+      poNumber: String(formData.get('poNumber') ?? ''),
+      accountNumber: String(formData.get('accountNumber') ?? ''),
+      shapeNo: String(formData.get('shapeNo') ?? ''),
+      shapeName: String(formData.get('shapeName') ?? ''),
+      styleNo: String(formData.get('styleNo') ?? ''),
+      itemNo: String(formData.get('itemNo') ?? ''),
+      expectedDeliveryDate: String(formData.get('expectedDeliveryDate') ?? ''),
+      madeInCountry: String(formData.get('madeInCountry') ?? ''),
+      sizes: Object.entries(quantities).map(([size, quantity]) => ({ size, quantity })).filter((entry) => entry.quantity > 0),
+      fibers: fiberContent.filter((fiber) => fiber.name && fiber.percentage).map((fiber) => ({ name: fiber.name, percentage: Number(fiber.percentage) })),
+      careSymbols: Object.entries(selectedCare).map(([group, code]) => ({ group, code })),
+      careTexts: [1, 2, 3, 4].map((line) => String(formData.get(`careText${line}`) ?? '')).filter(Boolean),
+    };
+    const response = await fetch(editId ? `/api/orders/${editId}` : '/api/orders', {
+      method: editId ? 'PUT' : 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    if (!response.ok) throw new Error('Unable to save draft.');
+    setMessage('Draft saved. You can return to edit this order before submitting.');
+  };
+  const saveDraft = async (event: MouseEvent<HTMLButtonElement>) => {
+    try {
+      await persistDraft(event.currentTarget.form!);
+    } catch {
+      setMessage('Unable to save this draft. Please try again.');
+    }
+  };
+  const previewLabel = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (texTracerUrl) {
       try {
@@ -95,6 +125,12 @@ function NewOrderForm() {
         setMessage('');
         return;
       }
+    }
+    try {
+      await persistDraft(event.currentTarget);
+    } catch {
+      setMessage('Unable to save this draft. Please try again.');
+      return;
     }
     setTexTracerError('');
     setMessage('English label preview is ready. Review it before submitting the order.');
@@ -120,15 +156,15 @@ function NewOrderForm() {
             <Field label="Ship mode">
               <select className="select"><option>Air</option><option>Sea</option><option>Courier</option></select>
             </Field>
-            <Field label="Expected delivery date"><input className="input" type="date" defaultValue={existingOrder?.expectedDeliveryDate ?? '2026-12-05'} /></Field>
-            <Field label="PO no."><input className="input" defaultValue={existingOrder?.poNumber ?? 'PO-2050'} /></Field>
-            <Field label="Acc. no."><input className="input" defaultValue={existingOrder?.accountNumber ?? 'AC-9904'} /></Field>
-            <Field label="Shape #"><input className="input" defaultValue={existingOrder?.shapeNo ?? 'SH-440'} /></Field>
-            <Field label="Shape name"><input className="input" defaultValue={existingOrder?.shapeName ?? 'Slim Fit Shirt'} /></Field>
-            <Field label="Style #"><input className="input" defaultValue={existingOrder?.styleNo ?? 'ST-48'} /></Field>
-            <Field label="Item no."><input className="input" defaultValue={existingOrder?.itemNo ?? 'IT-810'} /></Field>
+            <Field label="Expected delivery date"><input className="input" name="expectedDeliveryDate" type="date" defaultValue={existingOrder?.expectedDeliveryDate ?? '2026-12-05'} /></Field>
+            <Field label="PO no."><input className="input" name="poNumber" defaultValue={existingOrder?.poNumber ?? 'PO-2050'} /></Field>
+            <Field label="Acc. no."><input className="input" name="accountNumber" defaultValue={existingOrder?.accountNumber ?? 'AC-9904'} /></Field>
+            <Field label="Shape #"><input className="input" name="shapeNo" defaultValue={existingOrder?.shapeNo ?? 'SH-440'} /></Field>
+            <Field label="Shape name"><input className="input" name="shapeName" defaultValue={existingOrder?.shapeName ?? 'Slim Fit Shirt'} /></Field>
+            <Field label="Style #"><input className="input" name="styleNo" defaultValue={existingOrder?.styleNo ?? 'ST-48'} /></Field>
+            <Field label="Item no."><input className="input" name="itemNo" defaultValue={existingOrder?.itemNo ?? 'IT-810'} /></Field>
             <Field label="Made in">
-              <select className="select" defaultValue={existingOrder?.madeInCountry ?? countries[0]}>{countries.map((country) => <option key={country}>{country}</option>)}</select>
+              <select className="select" name="madeInCountry" defaultValue={existingOrder?.madeInCountry ?? countries[0]}>{countries.map((country) => <option key={country}>{country}</option>)}</select>
             </Field>
           </div>
         </section>
@@ -278,7 +314,7 @@ function NewOrderForm() {
                 {[1, 2, 3, 4].map((line) => (
                   <div className="flex items-center gap-3" key={line}>
                     <span className="w-5 text-sm text-muted">{line}</span>
-                    <select className="select" defaultValue={existingOrder?.careText[line - 1] ?? ''}><option value="">Select care text</option>{careTexts.map((text) => <option key={text}>{text}</option>)}</select>
+                    <select className="select" name={`careText${line}`} defaultValue={existingOrder?.careText[line - 1] ?? ''}><option value="">Select care text</option>{careTexts.map((text) => <option key={text}>{text}</option>)}</select>
                   </div>
                 ))}
               </div>

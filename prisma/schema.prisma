@@ -1,0 +1,119 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  ADMIN
+  CUSTOMER
+}
+
+enum UserStatus {
+  PENDING
+  ACTIVE
+}
+
+enum OrderStatus {
+  DRAFT
+  SUBMITTED
+}
+
+model User {
+  id        String     @id @default(cuid())
+  name      String
+  email     String     @unique
+  role      UserRole   @default(CUSTOMER)
+  status    UserStatus @default(PENDING)
+  createdAt DateTime   @default(now())
+  orders    Order[]
+}
+
+model Order {
+  id                   String      @id
+  customerId           String
+  customer             User        @relation(fields: [customerId], references: [id])
+  poNumber             String
+  accountNumber        String
+  shapeNo              String
+  shapeName            String
+  styleNo              String
+  itemNo               String
+  expectedDeliveryDate DateTime
+  madeInCountry        String
+  status               OrderStatus @default(DRAFT)
+  createdAt            DateTime    @default(now())
+  submittedAt          DateTime?
+  fibers               FiberContent[]
+  sizes                SizeQuantity[]
+  careSymbols          CareSelection[]
+  careTexts            CareTextSelection[]
+}
+
+model FiberContent {
+  id         String @id @default(cuid())
+  orderId   String
+  order      Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  name       String
+  percentage Int
+  position   Int
+}
+
+model SizeQuantity {
+  id       String @id @default(cuid())
+  orderId String
+  order   Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  size     String
+  quantity Int
+
+  @@unique([orderId, size])
+}
+
+model CareSelection {
+  id       String @id @default(cuid())
+  orderId String
+  order   Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  group    String
+  code     String
+
+  @@unique([orderId, group])
+}
+
+model CareTextSelection {
+  id       String @id @default(cuid())
+  orderId String
+  order   Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  position Int
+  text     String
+
+  @@unique([orderId, position])
+}
+
+model Country {
+  id       String  @id @default(cuid())
+  name     String  @unique
+  isActive Boolean @default(true)
+}
+
+model Fiber {
+  id       String  @id @default(cuid())
+  name     String  @unique
+  isActive Boolean @default(true)
+}
+
+model CareText {
+  id       String  @id @default(cuid())
+  text     String  @unique
+  isActive Boolean @default(true)
+}
+
+model CareSymbol {
+  id          String  @id @default(cuid())
+  code        String  @unique
+  description String
+  imagePath   String
+  isActive    Boolean @default(true)
+}

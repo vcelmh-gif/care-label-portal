@@ -1,8 +1,9 @@
 import { NextResponse } from 'next/server';
-import { users } from '@/lib/mock-data';
+import { prisma } from '@/lib/prisma';
 
 export async function GET() {
-  return NextResponse.json(users);
+  const users = await prisma.user.findMany({ orderBy: { createdAt: 'asc' } });
+  return NextResponse.json(users.map((user) => ({ ...user, createdAt: user.createdAt.toISOString().slice(0, 10) })));
 }
 
 export async function POST(request: Request) {
@@ -14,19 +15,19 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'A valid name and email are required.' }, { status: 400 });
   }
 
-  if (users.some((user) => user.email.toLowerCase() === email)) {
+  if (await prisma.user.findUnique({ where: { email } })) {
     return NextResponse.json({ error: 'An account with this email already exists.' }, { status: 409 });
   }
 
-  const user = {
-    id: `u${Date.now()}`,
-    name,
-    email,
-    role: 'CUSTOMER' as const,
-    status: 'PENDING' as const,
-    createdAt: new Date().toISOString().slice(0, 10),
-  };
-  users.push(user);
+  const user = await prisma.user.create({
+    data: {
+      id: `u${Date.now()}`,
+      name,
+      email,
+      role: 'CUSTOMER',
+      status: 'PENDING',
+    },
+  });
 
-  return NextResponse.json(user, { status: 201 });
+  return NextResponse.json({ ...user, createdAt: user.createdAt.toISOString().slice(0, 10) }, { status: 201 });
 }

@@ -1,9 +1,8 @@
 'use client';
 
 import Link from 'next/link';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { jsPDF } from 'jspdf';
-import { orders } from '@/lib/mock-data';
 
 const careSymbolImages: Record<string, string> = {
   W1: 'image18.png',
@@ -14,10 +13,47 @@ const careSymbolImages: Record<string, string> = {
   DC1: 'image14.png',
 };
 
+type ApiOrder = {
+  id: string;
+  poNumber: string;
+  accountNumber: string;
+  shapeNo: string;
+  shapeName: string;
+  styleNo: string;
+  itemNo: string;
+  expectedDeliveryDate: string;
+  madeInCountry: string;
+  status: string;
+  fibers: { name: string; percentage: number }[];
+  sizes: { quantity: number }[];
+  careSymbols: { code: string }[];
+  careTexts: { text: string }[];
+};
+
 export default function OrderDetailPage({ params }: { params: { id: string } }) {
-  const order = orders.find((entry) => entry.id === params.id) ?? orders[0];
-  const [status, setStatus] = useState(order.status);
+  const [order, setOrder] = useState<ApiOrder | null>(null);
+  const [status, setStatus] = useState('');
   const [message, setMessage] = useState('');
+
+  useEffect(() => {
+    fetch(`/api/orders/${params.id}`)
+      .then((response) => {
+        if (!response.ok) throw new Error('Unable to load order.');
+        return response.json();
+      })
+      .then((data: ApiOrder) => {
+        setOrder(data);
+        setStatus(data.status);
+      })
+      .catch(() => setMessage('Unable to load this order from the database.'));
+  }, [params.id]);
+
+  if (!order) {
+    return <main className="mx-auto max-w-5xl px-6 py-10"><p className="text-sm text-muted">{message || 'Loading order...'}</p></main>;
+  }
+
+  const careSymbols = order.careSymbols.map((symbol) => symbol.code);
+  const totalQuantity = order.sizes.reduce((total, size) => total + size.quantity, 0);
 
   const downloadPdf = () => {
     const pdf = new jsPDF();
@@ -30,7 +66,7 @@ export default function OrderDetailPage({ params }: { params: { id: string } }) 
     pdf.text('Fiber content', 20, 64);
     order.fibers.forEach((fiber, index) => pdf.text(`${fiber.percentage}% ${fiber.name}`, 28, 72 + index * 8));
     pdf.text('Care text', 20, 96);
-    order.careText.forEach((text, index) => pdf.text(text, 28, 104 + index * 8));
+    order.careTexts.forEach((careText, index) => pdf.text(careText.text, 28, 104 + index * 8));
     pdf.save(`${order.id}.pdf`);
   };
 
@@ -67,7 +103,7 @@ export default function OrderDetailPage({ params }: { params: { id: string } }) 
             <div><p className="text-sm text-muted">Item No</p><p className="mt-1 font-medium">{order.itemNo}</p></div>
             <div><p className="text-sm text-muted">Delivery</p><p className="mt-1 font-medium">{order.expectedDeliveryDate}</p></div>
             <div><p className="text-sm text-muted">Country of Origin</p><p className="mt-1 font-medium">{order.madeInCountry}</p></div>
-            <div><p className="text-sm text-muted">Total quantity</p><p className="mt-1 font-medium">{order.sizes.length} PC</p></div>
+            <div><p className="text-sm text-muted">Total quantity</p><p className="mt-1 font-medium">{totalQuantity} PC</p></div>
           </div>
           <div className="mt-8"><h2 className="text-lg font-semibold">Fiber content</h2><ul className="mt-3 space-y-2 text-muted">{order.fibers.map((fiber) => <li key={fiber.name}>{fiber.name}: {fiber.percentage}%</li>)}</ul></div>
         </div>
@@ -81,17 +117,10 @@ export default function OrderDetailPage({ params }: { params: { id: string } }) 
             <div className="mt-6 border-t border-border pt-4">
               <p className="text-xs uppercase tracking-[0.2em] text-muted">Care instructions</p>
               <div className="mt-3 flex flex-wrap gap-3">
-                {Object.values(order.careSymbols).flat().map((symbol) => (
-                  <img
-                    key={symbol}
-                    src={`/symbols/${careSymbolImages[symbol]}`}
-                    alt={symbol}
-                    className="h-12 w-12 object-contain"
-                  />
-                ))}
+                {careSymbols.map((symbol) => <img key={symbol} src={`/symbols/${careSymbolImages[symbol]}`} alt={symbol} className="h-12 w-12 object-contain" />)}
               </div>
             </div>
-            <div className="mt-6 border-t border-border pt-4 text-sm text-muted">{order.careText.map((text) => <p key={text}>{text}</p>)}</div>
+            <div className="mt-6 border-t border-border pt-4 text-sm text-muted">{order.careTexts.map((careText) => <p key={careText.text}>{careText.text}</p>)}</div>
           </div>
         </div>
       </div>

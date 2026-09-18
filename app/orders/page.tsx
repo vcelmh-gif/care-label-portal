@@ -55,6 +55,9 @@ export default function OrdersPage() {
           <h1 className="mt-2 text-3xl font-semibold">My orders</h1>
         </div>
         <div className="flex items-center gap-3">
+          {session.role === 'ADMIN' && (
+            <Link href="/admin/users" className="button-secondary">Admin</Link>
+          )}
           <button className="button-secondary" onClick={async () => { await fetch('/api/auth/logout', { method: 'POST' }); setSession(null); }}>Log out</button>
           <Link href="/orders/new" className="button-primary">Create order</Link>
         </div>

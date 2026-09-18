@@ -9,8 +9,8 @@ async function main() {
   for (const user of users) {
     await prisma.user.upsert({
       where: { email: user.email },
-      update: { name: user.name, role: user.role, status: user.status, passwordHash: demoPasswordHash },
-      create: { id: user.id, name: user.name, email: user.email, role: user.role, status: user.status, passwordHash: demoPasswordHash, createdAt: new Date(user.createdAt) },
+      update: { name: user.name, companyName: user.companyName, role: user.role, status: user.status, passwordHash: demoPasswordHash },
+      create: { id: user.id, name: user.name, companyName: user.companyName, email: user.email, role: user.role, status: user.status, passwordHash: demoPasswordHash, createdAt: new Date(user.createdAt) },
     });
   }
 

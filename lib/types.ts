@@ -6,6 +6,7 @@ export type ProductLanguage = 'en' | 'zh-Hant' | 'zh-Hans';
 export interface User {
   id: string;
   name: string;
+  companyName?: string | null;
   email: string;
   role: UserRole;
   status: UserStatus;

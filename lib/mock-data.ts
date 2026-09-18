@@ -1,9 +1,9 @@
 import { Order, SystemSetting, User } from './types';
 
 export const users: User[] = [
-  { id: 'u1', name: 'Alicia Wong', email: 'alicia@fashionsource.io', role: 'CUSTOMER', status: 'ACTIVE', createdAt: '2026-01-14' },
-  { id: 'u2', name: 'Sean Lee', email: 'sean@studioaccess.com', role: 'CUSTOMER', status: 'PENDING', createdAt: '2026-02-02' },
-  { id: 'u3', name: 'Maya Chen', email: 'maya@carelabel.co', role: 'ADMIN', status: 'ACTIVE', createdAt: '2025-11-06' },
+  { id: 'u1', name: 'Alicia Wong', companyName: 'Fashion Source', email: 'alicia@fashionsource.io', role: 'CUSTOMER', status: 'ACTIVE', createdAt: '2026-01-14' },
+  { id: 'u2', name: 'Sean Lee', companyName: 'Studio Access', email: 'sean@studioaccess.com', role: 'CUSTOMER', status: 'PENDING', createdAt: '2026-02-02' },
+  { id: 'u3', name: 'Maya Chen', companyName: 'Care Label Portal', email: 'maya@carelabel.co', role: 'ADMIN', status: 'ACTIVE', createdAt: '2025-11-06' },
 ];
 
 export const countries = ['China', 'Bangladesh', 'Cambodia', 'Vietnam', 'Turkey', 'Portugal', 'Italy'];

@@ -42,6 +42,7 @@ export default function AdminUsersPage() {
           <thead className="bg-stone-50 text-sm text-muted">
             <tr>
               <th className="px-6 py-3">Name</th>
+              <th className="px-6 py-3">Company</th>
               <th className="px-6 py-3">Role</th>
               <th className="px-6 py-3">Status</th>
               <th className="px-6 py-3">Created</th>
@@ -57,6 +58,7 @@ export default function AdminUsersPage() {
                     <p className="text-muted">{user.email}</p>
                   </div>
                 </td>
+                <td className="px-6 py-4">{user.companyName || '—'}</td>
                 <td className="px-6 py-4">{user.role}</td>
                 <td className="px-6 py-4"><span className="badge">{user.status}</span></td>
                 <td className="px-6 py-4">{user.createdAt}</td>

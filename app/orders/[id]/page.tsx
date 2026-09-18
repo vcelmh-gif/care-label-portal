@@ -65,11 +65,8 @@ export default function OrderDetailPage({ params }: { params: { id: string } }) 
     pdf.setFontSize(11);
     pdf.text(`Order: ${order.id}`, 20, 34);
     pdf.text(`PO: ${order.poNumber}`, 20, 42);
-    pdf.text(`Made in: ${order.madeInCountry}`, 20, 50);
-    pdf.text('Fiber content', 20, 64);
-    order.fibers.forEach((fiber, index) => pdf.text(`${fiber.percentage}% ${fiber.name}`, 28, 72 + index * 8));
-    pdf.text('Care text', 20, 96);
-    order.careTexts.forEach((careText, index) => pdf.text(careText.text, 28, 104 + index * 8));
+    pdf.text('Care text', 20, 50);
+    order.careTexts.forEach((careText, index) => pdf.text(careText.text, 28, 58 + index * 8));
     pdf.save(`${order.id}.pdf`);
   };
 
@@ -123,18 +120,14 @@ export default function OrderDetailPage({ params }: { params: { id: string } }) 
             <div><p className="text-sm text-muted">Style No</p><p className="mt-1 font-medium">{order.styleNo}</p></div>
             <div><p className="text-sm text-muted">Item No</p><p className="mt-1 font-medium">{order.itemNo}</p></div>
             <div><p className="text-sm text-muted">Delivery</p><p className="mt-1 font-medium">{order.expectedDeliveryDate}</p></div>
-            <div><p className="text-sm text-muted">Country of Origin</p><p className="mt-1 font-medium">{order.madeInCountry}</p></div>
             <div><p className="text-sm text-muted">Total quantity</p><p className="mt-1 font-medium">{totalQuantity} PC</p></div>
           </div>
-          <div className="mt-8"><h2 className="text-lg font-semibold">Fiber content</h2><ul className="mt-3 space-y-2 text-muted">{order.fibers.map((fiber) => <li key={fiber.name}>{fiber.name}: {fiber.percentage}%</li>)}</ul></div>
         </div>
         <div className="card p-8">
           <h2 className="text-lg font-semibold">Label preview</h2>
           <p className="mt-1 text-sm text-muted">English production preview</p>
           <div className="mt-6 rounded-xl border border-border bg-stone-50 p-6">
-            <p className="text-xs uppercase tracking-[0.2em] text-muted">Made in {order.madeInCountry}</p>
             <p className="mt-4 text-lg font-semibold">{order.shapeName}</p>
-            <ul className="mt-4 space-y-2 text-sm text-muted">{order.fibers.map((fiber) => <li key={fiber.name}>{fiber.percentage}% {fiber.name}</li>)}</ul>
             <div className="mt-6 border-t border-border pt-4">
               <p className="text-xs uppercase tracking-[0.2em] text-muted">Care instructions</p>
               <div className="mt-3 flex flex-wrap gap-3">

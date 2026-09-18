@@ -24,6 +24,7 @@ type ApiOrder = {
   expectedDeliveryDate: string;
   madeInCountry: string;
   status: string;
+  submittedAt?: string | null;
   fibers: { name: string; percentage: number }[];
   sizes: { quantity: number }[];
   careSymbols: { code: string }[];
@@ -34,6 +35,7 @@ export default function OrderDetailPage({ params }: { params: { id: string } }) 
   const [order, setOrder] = useState<ApiOrder | null>(null);
   const [status, setStatus] = useState('');
   const [message, setMessage] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     fetch(`/api/orders/${params.id}`)
@@ -70,9 +72,22 @@ export default function OrderDetailPage({ params }: { params: { id: string } }) 
     pdf.save(`${order.id}.pdf`);
   };
 
-  const submitOrder = () => {
-    setStatus('SUBMITTED');
-    setMessage('Order submitted. A PDF copy will be emailed to the customer and administrator.');
+  const submitOrder = async () => {
+    if (isSubmitting || status !== 'DRAFT') return;
+    setIsSubmitting(true);
+    setMessage('');
+    try {
+      const response = await fetch(`/api/orders/${params.id}/submit`, { method: 'POST' });
+      const data = await response.json().catch(() => null);
+      if (!response.ok) throw new Error(data?.error || 'Unable to submit order.');
+      setOrder((current) => current ? { ...current, ...data } : current);
+      setStatus(data.status);
+      setMessage('Order submitted. A PDF copy will be emailed to the customer and administrator.');
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : 'Unable to submit this order. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -87,7 +102,7 @@ export default function OrderDetailPage({ params }: { params: { id: string } }) 
           <Link href="/orders" className="button-secondary">Back</Link>
           {status === 'DRAFT' && <Link href={`/orders/new?edit=${order.id}`} className="button-secondary">Edit draft</Link>}
           <button type="button" className="button-secondary" onClick={downloadPdf}>Download PDF</button>
-          {status === 'DRAFT' && <button type="button" className="button-primary" onClick={submitOrder}>Submit order</button>}
+          {status === 'DRAFT' && <button type="button" className="button-primary" onClick={submitOrder} disabled={isSubmitting}>{isSubmitting ? 'Submitting…' : 'Submit order'}</button>}
         </div>
       </div>
       {message && <div className="mt-6 rounded-lg border border-border bg-stone-50 p-4 text-sm">{message}</div>}

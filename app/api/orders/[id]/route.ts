@@ -22,6 +22,9 @@ export async function PUT(request: Request, { params }: { params: { id: string }
   const existing = await prisma.order.findUnique({ where: { id: params.id } });
   if (!existing) return NextResponse.json({ error: 'Order not found.' }, { status: 404 });
   if (user.role !== 'ADMIN' && existing.customerId !== user.id) return NextResponse.json({ error: 'Order not found.' }, { status: 404 });
+  if (existing.status !== 'DRAFT') {
+    return NextResponse.json({ error: 'Submitted orders cannot be edited.' }, { status: 409 });
+  }
   const fibers = Array.isArray(body.fibers) ? body.fibers : [];
   const sizes = Array.isArray(body.sizes) ? body.sizes : [];
   const careSymbols = Array.isArray(body.careSymbols) ? body.careSymbols : [];

@@ -1,8 +1,11 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { hashPassword } from '@/lib/password';
+import { getCurrentUser } from '@/lib/session';
 
 export async function GET() {
+  const currentUser = await getCurrentUser();
+  if (!currentUser || currentUser.role !== 'ADMIN') return NextResponse.json({ error: 'Administrator access required.' }, { status: 403 });
   const users = await prisma.user.findMany({ orderBy: { createdAt: 'asc' } });
   return NextResponse.json(users.map(({ passwordHash: _passwordHash, ...user }) => ({
     ...user,
@@ -11,6 +14,8 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+  const currentUser = await getCurrentUser();
+  if (!currentUser || currentUser.role !== 'ADMIN') return NextResponse.json({ error: 'Administrator access required.' }, { status: 403 });
   const body = await request.json().catch(() => null);
   const name = typeof body?.name === 'string' ? body.name.trim() : '';
   const email = typeof body?.email === 'string' ? body.email.trim().toLowerCase() : '';

@@ -28,7 +28,6 @@ export default function LoginPage() {
         setError(result?.error ?? 'Unable to sign in.');
         return;
       }
-      window.localStorage.setItem('care-label-auth', JSON.stringify(result.user));
       router.push('/orders');
     } catch {
       setError('Unable to reach the account service. Please try again.');

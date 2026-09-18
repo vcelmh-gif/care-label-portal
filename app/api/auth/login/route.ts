@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { verifyPassword } from '@/lib/password';
+import { createSession } from '@/lib/session';
 
 export async function POST(request: Request) {
   const body = await request.json().catch(() => null);
@@ -18,6 +19,7 @@ export async function POST(request: Request) {
   if (user.status !== 'ACTIVE') {
     return NextResponse.json({ error: 'Your account is awaiting administrator approval.' }, { status: 403 });
   }
+  await createSession(user.id);
 
   return NextResponse.json({
     user: { id: user.id, name: user.name, email: user.email, role: user.role, status: user.status },

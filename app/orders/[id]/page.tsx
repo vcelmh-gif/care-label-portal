@@ -127,7 +127,9 @@ export default function OrderDetailPage({ params }: { params: { id: string } }) 
           <h2 className="text-lg font-semibold">Label preview</h2>
           <p className="mt-1 text-sm text-muted">English production preview</p>
           <div className="mt-6 rounded-xl border border-border bg-stone-50 p-6">
+            <p className="text-xs uppercase tracking-[0.2em] text-muted">Made in {order.madeInCountry}</p>
             <p className="mt-4 text-lg font-semibold">{order.shapeName}</p>
+            <ul className="mt-4 space-y-2 text-sm text-muted">{order.fibers.map((fiber) => <li key={fiber.name}>{fiber.percentage}% {fiber.name}</li>)}</ul>
             <div className="mt-6 border-t border-border pt-4">
               <p className="text-xs uppercase tracking-[0.2em] text-muted">Care instructions</p>
               <div className="mt-3 flex flex-wrap gap-3">

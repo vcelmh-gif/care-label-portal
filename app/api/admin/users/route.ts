@@ -54,18 +54,41 @@ export async function PATCH(request: Request) {
 
   const body = await request.json().catch(() => null);
   const userId = typeof body?.userId === 'string' ? body.userId : '';
-  const status = body?.status;
-  if (!userId || !['ACTIVE', 'INACTIVE'].includes(status)) {
-    return NextResponse.json({ error: 'A valid user ID and status are required.' }, { status: 400 });
+  const hasStatus = body?.status !== undefined;
+  const hasRole = body?.role !== undefined;
+  const status = body?.status as 'ACTIVE' | 'INACTIVE' | undefined;
+  const role = body?.role as 'ADMIN' | 'CUSTOMER' | undefined;
+  if (!userId || (!hasStatus && !hasRole)) {
+    return NextResponse.json({ error: 'A valid user ID and status or role are required.' }, { status: 400 });
   }
+  if ((hasStatus && !['ACTIVE', 'INACTIVE'].includes(status ?? '')) || (hasRole && !['ADMIN', 'CUSTOMER'].includes(role ?? ''))) {
+    return NextResponse.json({ error: 'A valid user ID and status or role are required.' }, { status: 400 });
+  }
+
+  const user = await prisma.user.findUnique({ where: { id: userId } });
+  if (!user) return NextResponse.json({ error: 'User not found.' }, { status: 404 });
   if (userId === currentUser.id && status === 'INACTIVE') {
     return NextResponse.json({ error: 'You cannot deactivate your own administrator account.' }, { status: 400 });
   }
 
-  const user = await prisma.user.update({
+  const resultingRole = role ?? user.role;
+  const resultingStatus = status ?? user.status;
+  const removesActiveAdmin = user.role === 'ADMIN' && user.status === 'ACTIVE'
+    && (resultingRole !== 'ADMIN' || resultingStatus !== 'ACTIVE');
+  if (removesActiveAdmin) {
+    const activeAdminCount = await prisma.user.count({ where: { role: 'ADMIN', status: 'ACTIVE' } });
+    if (activeAdminCount <= 1) {
+      return NextResponse.json({ error: 'At least one active administrator must remain.' }, { status: 400 });
+    }
+  }
+
+  const updatedUser = await prisma.user.update({
     where: { id: userId },
-    data: { status },
+    data: {
+      ...(hasStatus ? { status } : {}),
+      ...(hasRole ? { role } : {}),
+    },
   });
-  const { passwordHash: _passwordHash, ...safeUser } = user;
-  return NextResponse.json({ ...safeUser, createdAt: user.createdAt.toISOString().slice(0, 10) });
+  const { passwordHash: _passwordHash, ...safeUser } = updatedUser;
+  return NextResponse.json({ ...safeUser, createdAt: updatedUser.createdAt.toISOString().slice(0, 10) });
 }

@@ -2,25 +2,37 @@
 
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
-import { orders } from '@/lib/mock-data';
 
-type AuthSession = { email: string };
+type AuthSession = { email: string; name: string; role: string };
+type ApiOrder = {
+  id: string;
+  customer: { name: string; email: string };
+  status: string;
+  expectedDeliveryDate: string;
+  sizes: { quantity: number }[];
+};
 
 export default function OrdersPage() {
   const [session, setSession] = useState<AuthSession | null>(null);
   const [ready, setReady] = useState(false);
+  const [orders, setOrders] = useState<ApiOrder[]>([]);
+  const [error, setError] = useState('');
 
   useEffect(() => {
-    const stored = window.localStorage.getItem('care-label-auth');
-    if (stored) {
-      try {
-        setSession(JSON.parse(stored) as AuthSession);
-      } catch {
-        window.localStorage.removeItem('care-label-auth');
-      }
-    }
-    setReady(true);
+    fetch('/api/auth/session').then((response) => response.ok ? response.json() : null)
+      .then((data) => setSession(data?.user ?? null)).finally(() => setReady(true));
   }, []);
+
+  useEffect(() => {
+    if (!session) return;
+    fetch('/api/orders')
+      .then((response) => {
+        if (!response.ok) throw new Error('Unable to load orders.');
+        return response.json();
+      })
+      .then((data: ApiOrder[]) => setOrders(data))
+      .catch(() => setError('Unable to load orders from the database.'));
+  }, [session]);
 
   if (!ready) return null;
   if (!session) {
@@ -35,10 +47,6 @@ export default function OrdersPage() {
     );
   }
 
-  const visibleOrders = session.email === 'maya@carelabel.co'
-    ? orders
-    : orders.filter((order) => order.customerName === 'Alicia Wong');
-
   return (
     <main className="mx-auto max-w-6xl px-6 py-10">
       <div className="flex items-center justify-between gap-4">
@@ -46,17 +54,21 @@ export default function OrdersPage() {
           <p className="text-sm uppercase tracking-[0.2em] text-muted">Orders</p>
           <h1 className="mt-2 text-3xl font-semibold">My orders</h1>
         </div>
-        <Link href="/orders/new" className="button-primary">Create order</Link>
+        <div className="flex items-center gap-3">
+          <button className="button-secondary" onClick={async () => { await fetch('/api/auth/logout', { method: 'POST' }); setSession(null); }}>Log out</button>
+          <Link href="/orders/new" className="button-primary">Create order</Link>
+        </div>
       </div>
+      {error && <div className="mt-6 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">{error}</div>}
       <div className="mt-8 card overflow-hidden">
         <table className="min-w-full divide-y divide-border text-left">
           <thead className="bg-stone-50 text-sm text-muted"><tr><th className="px-6 py-3">Order</th><th className="px-6 py-3">Customer</th><th className="px-6 py-3">Total quantity</th><th className="px-6 py-3">Status</th><th className="px-6 py-3">Delivery</th><th className="px-6 py-3">Action</th></tr></thead>
           <tbody className="divide-y divide-border text-sm">
-            {visibleOrders.map((order) => (
+            {orders.map((order) => (
               <tr key={order.id}>
                 <td className="px-6 py-4 font-medium">{order.id}</td>
-                <td className="px-6 py-4">{order.customerName}</td>
-                <td className="px-6 py-4">{order.sizes.length} PC</td>
+                <td className="px-6 py-4">{order.customer.name}</td>
+                <td className="px-6 py-4">{order.sizes.reduce((total, size) => total + size.quantity, 0)} PC</td>
                 <td className="px-6 py-4"><span className="badge">{order.status}</span></td>
                 <td className="px-6 py-4">{order.expectedDeliveryDate}</td>
                 <td className="px-6 py-4"><Link href={`/orders/${order.id}`} className="text-ink underline">View</Link></td>
@@ -64,7 +76,7 @@ export default function OrdersPage() {
             ))}
           </tbody>
         </table>
-        {visibleOrders.length === 0 && <p className="p-6 text-sm text-muted">No orders are associated with this account yet.</p>}
+        {orders.length === 0 && <p className="p-6 text-sm text-muted">No orders are associated with this account yet.</p>}
       </div>
     </main>
   );

@@ -5,9 +5,26 @@ import { FormEvent, useState } from 'react';
 
 export default function ForgotPasswordPage() {
   const [sent, setSent] = useState(false);
-  const submit = (event: FormEvent<HTMLFormElement>) => {
+  const [error, setError] = useState('');
+  const submit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    setSent(true);
+    setError('');
+    const email = String(new FormData(event.currentTarget).get('email') ?? '').trim();
+    try {
+      const response = await fetch('/api/auth/forgot-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      });
+      const result = await response.json().catch(() => null);
+      if (!response.ok) {
+        setError(result?.error ?? 'Unable to send a reset link.');
+        return;
+      }
+      setSent(true);
+    } catch {
+      setError('Unable to reach the account service. Please try again.');
+    }
   };
 
   return (
@@ -22,8 +39,9 @@ export default function ForgotPasswordPage() {
           <form className="mt-8 space-y-5" onSubmit={submit}>
             <label className="block">
               <span className="mb-2 block text-sm font-medium">Email</span>
-              <input className="input" type="email" required placeholder="name@example.com" />
+              <input className="input" name="email" type="email" required placeholder="name@example.com" />
             </label>
+            {error && <p className="text-sm text-red-600" role="alert">{error}</p>}
             <button type="submit" className="button-primary w-full">Send reset link</button>
           </form>
         )}

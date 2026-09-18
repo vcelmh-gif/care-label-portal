@@ -1,14 +1,16 @@
 import { PrismaClient } from '@prisma/client';
 import { careTexts, careSymbols, countries, fibers, orders, users } from '../lib/mock-data';
+import { hashPassword } from '../lib/password';
 
 const prisma = new PrismaClient();
 
 async function main() {
+  const demoPasswordHash = await hashPassword('password123');
   for (const user of users) {
     await prisma.user.upsert({
       where: { email: user.email },
-      update: { name: user.name, role: user.role, status: user.status },
-      create: { id: user.id, name: user.name, email: user.email, role: user.role, status: user.status, createdAt: new Date(user.createdAt) },
+      update: { name: user.name, role: user.role, status: user.status, passwordHash: demoPasswordHash },
+      create: { id: user.id, name: user.name, email: user.email, role: user.role, status: user.status, passwordHash: demoPasswordHash, createdAt: new Date(user.createdAt) },
     });
   }
 

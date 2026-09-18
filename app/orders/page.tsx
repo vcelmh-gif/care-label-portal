@@ -34,6 +34,18 @@ export default function OrdersPage() {
       .catch(() => setError('Unable to load orders from the database.'));
   }, [session]);
 
+  async function deleteDraft(order: ApiOrder) {
+    if (!window.confirm(`Delete draft ${order.id}? This action cannot be undone.`)) return;
+    setError('');
+    const response = await fetch(`/api/orders/${order.id}`, { method: 'DELETE' });
+    const data = await response.json().catch(() => null);
+    if (!response.ok) {
+      setError(data?.error ?? 'Unable to delete draft.');
+      return;
+    }
+    setOrders((current) => current.filter((item) => item.id !== order.id));
+  }
+
   if (!ready) return null;
   if (!session) {
     return (
@@ -74,7 +86,17 @@ export default function OrdersPage() {
                 <td className="px-6 py-4">{order.sizes.reduce((total, size) => total + size.quantity, 0)} PC</td>
                 <td className="px-6 py-4"><span className="badge">{order.status}</span></td>
                 <td className="px-6 py-4">{order.expectedDeliveryDate}</td>
-                <td className="px-6 py-4"><Link href={`/orders/${order.id}`} className="text-ink underline">View</Link></td>
+                <td className="px-6 py-4">
+                  <div className="flex flex-wrap gap-3">
+                    <Link href={`/orders/${order.id}`} className="text-ink underline">View</Link>
+                    {order.status === 'DRAFT' && (
+                      <>
+                        <Link href={`/orders/new?edit=${order.id}`} className="text-ink underline">Edit</Link>
+                        <button type="button" onClick={() => deleteDraft(order)} className="text-red-700 underline">Delete</button>
+                      </>
+                    )}
+                  </div>
+                </td>
               </tr>
             ))}
           </tbody>

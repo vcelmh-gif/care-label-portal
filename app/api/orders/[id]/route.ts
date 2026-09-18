@@ -50,3 +50,19 @@ export async function PUT(request: Request, { params }: { params: { id: string }
   });
   return NextResponse.json(order);
 }
+
+export async function DELETE(_: Request, { params }: { params: { id: string } }) {
+  const user = await getCurrentUser();
+  if (!user) return NextResponse.json({ error: 'Authentication required.' }, { status: 401 });
+  const existing = await prisma.order.findUnique({ where: { id: params.id } });
+  if (!existing) return NextResponse.json({ error: 'Order not found.' }, { status: 404 });
+  if (user.role !== 'ADMIN' && existing.customerId !== user.id) {
+    return NextResponse.json({ error: 'Order not found.' }, { status: 404 });
+  }
+  if (existing.status !== 'DRAFT') {
+    return NextResponse.json({ error: 'Only draft orders can be deleted.' }, { status: 409 });
+  }
+
+  await prisma.order.delete({ where: { id: params.id } });
+  return NextResponse.json({ deleted: true });
+}

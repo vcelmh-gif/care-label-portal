@@ -25,6 +25,7 @@ type ApiOrder = {
   madeInCountry: string;
   status: string;
   submittedAt?: string | null;
+  notificationStatus?: string;
   fibers: { name: string; percentage: number }[];
   sizes: { quantity: number }[];
   careSymbols: { code: string }[];
@@ -82,7 +83,12 @@ export default function OrderDetailPage({ params }: { params: { id: string } }) 
       if (!response.ok) throw new Error(data?.error || 'Unable to submit order.');
       setOrder((current) => current ? { ...current, ...data } : current);
       setStatus(data.status);
-      setMessage('Order submitted. A PDF copy will be emailed to the customer and administrator.');
+      const notificationMessage = data.notification?.sent
+        ? ' A confirmation email was sent to the customer.'
+        : data.notification?.configured === false
+          ? ' Email notification is not configured; download the PDF below.'
+          : ' The order was submitted, but the confirmation email could not be sent.';
+      setMessage(`Order submitted.${notificationMessage}`);
     } catch (error) {
       setMessage(error instanceof Error ? error.message : 'Unable to submit this order. Please try again.');
     } finally {

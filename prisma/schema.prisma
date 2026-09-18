@@ -23,6 +23,14 @@ enum OrderStatus {
   SUBMITTED
 }
 
+enum OrderNotificationStatus {
+  NOT_SENT
+  SENDING
+  SENT
+  FAILED
+  NOT_CONFIGURED
+}
+
 model User {
   id        String     @id @default(cuid())
   name      String
@@ -75,6 +83,9 @@ model Order {
   status               OrderStatus @default(DRAFT)
   createdAt            DateTime    @default(now())
   submittedAt          DateTime?
+  notificationStatus   OrderNotificationStatus @default(NOT_SENT)
+  notificationSentAt   DateTime?
+  notificationError    String?
   fibers               FiberContent[]
   sizes                SizeQuantity[]
   careSymbols          CareSelection[]

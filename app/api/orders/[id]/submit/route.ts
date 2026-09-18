@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getCurrentUser } from '@/lib/session';
+import { notifyOrder } from '@/lib/order-notification';
 
 export async function POST(_: Request, { params }: { params: { id: string } }) {
   const user = await getCurrentUser();
@@ -24,6 +25,20 @@ export async function POST(_: Request, { params }: { params: { id: string } }) {
     return NextResponse.json({ error: 'Only draft orders can be submitted.' }, { status: 409 });
   }
 
-  const order = await prisma.order.findUnique({ where: { id: params.id } });
-  return NextResponse.json(order);
+  const order = await prisma.order.findUnique({
+    where: { id: params.id },
+    include: { customer: true, fibers: true, sizes: true, careSymbols: true, careTexts: true },
+  });
+  if (!order) return NextResponse.json({ error: 'Order not found.' }, { status: 404 });
+
+  const notification = await notifyOrder(order);
+  const updatedOrder = await prisma.order.findUnique({ where: { id: params.id } });
+  return NextResponse.json({
+    ...updatedOrder,
+    notification: {
+      status: updatedOrder?.notificationStatus,
+      sent: notification.sent,
+      configured: notification.configured,
+    },
+  });
 }

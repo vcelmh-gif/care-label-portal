@@ -1,5 +1,5 @@
 export type UserRole = 'ADMIN' | 'CUSTOMER';
-export type UserStatus = 'PENDING' | 'ACTIVE';
+export type UserStatus = 'PENDING' | 'ACTIVE' | 'INACTIVE';
 export type OrderStatus = 'DRAFT' | 'SUBMITTED';
 export type ProductLanguage = 'en' | 'zh-Hant' | 'zh-Hans';
 

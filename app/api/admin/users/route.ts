@@ -43,3 +43,27 @@ export async function POST(request: Request) {
   const { passwordHash: _passwordHash, ...safeUser } = user;
   return NextResponse.json({ ...safeUser, createdAt: user.createdAt.toISOString().slice(0, 10) }, { status: 201 });
 }
+
+export async function PATCH(request: Request) {
+  const currentUser = await getCurrentUser();
+  if (!currentUser || currentUser.role !== 'ADMIN') {
+    return NextResponse.json({ error: 'Administrator access required.' }, { status: 403 });
+  }
+
+  const body = await request.json().catch(() => null);
+  const userId = typeof body?.userId === 'string' ? body.userId : '';
+  const status = body?.status;
+  if (!userId || !['ACTIVE', 'INACTIVE'].includes(status)) {
+    return NextResponse.json({ error: 'A valid user ID and status are required.' }, { status: 400 });
+  }
+  if (userId === currentUser.id && status === 'INACTIVE') {
+    return NextResponse.json({ error: 'You cannot deactivate your own administrator account.' }, { status: 400 });
+  }
+
+  const user = await prisma.user.update({
+    where: { id: userId },
+    data: { status },
+  });
+  const { passwordHash: _passwordHash, ...safeUser } = user;
+  return NextResponse.json({ ...safeUser, createdAt: user.createdAt.toISOString().slice(0, 10) });
+}

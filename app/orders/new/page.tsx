@@ -1,9 +1,25 @@
 'use client';
 
 import Link from 'next/link';
-import { FormEvent, MouseEvent, Suspense, useMemo, useState } from 'react';
+import { FormEvent, MouseEvent, Suspense, useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { careTexts, countries, fibers, orders } from '@/lib/mock-data';
+import { careTexts, countries, fibers } from '@/lib/mock-data';
+
+type EditableOrder = {
+  id: string;
+  poNumber: string;
+  accountNumber: string;
+  shapeNo: string;
+  shapeName: string;
+  styleNo: string;
+  itemNo: string;
+  expectedDeliveryDate: string;
+  madeInCountry: string;
+  fibers: { name: string; percentage: number }[];
+  sizes: { size: string; quantity: number }[];
+  careSymbols: { group: string; code: string }[];
+  careTexts: { text: string }[];
+};
 
 const sizes = [
   '65B', '65C', '65D',
@@ -41,34 +57,64 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 function NewOrderForm() {
   const searchParams = useSearchParams();
   const editId = searchParams.get('edit');
-  const existingOrder = editId ? orders.find((order) => order.id === editId) : undefined;
+  const [existingOrder, setExistingOrder] = useState<EditableOrder | undefined>();
+  const [isLoadingEdit, setIsLoadingEdit] = useState(Boolean(editId));
   const [quantities, setQuantities] = useState<Record<string, number>>(
-    Object.fromEntries((existingOrder?.sizes ?? []).map((size) => [size, 1])),
+    {},
   );
-  const [selectedCare, setSelectedCare] = useState<Record<string, string>>(
-    existingOrder ? {
-      Washing: existingOrder.careSymbols.washing[0],
-      Bleaching: existingOrder.careSymbols.bleaching[0],
-      Drying: existingOrder.careSymbols.drying[0],
-      Ironing: existingOrder.careSymbols.ironing[0],
-      'Dry Cleaning': existingOrder.careSymbols.dryCleaning[0],
-    } : {},
-  );
+  const [selectedCare, setSelectedCare] = useState<Record<string, string>>({});
   const [fiberContent, setFiberContent] = useState(
     fiberRows.map((_, index) => ({
-      percentage: existingOrder?.fibers[index]?.percentage.toString() ?? '',
-      name: existingOrder?.fibers[index]?.name ?? '',
+      percentage: '',
+      name: '',
     })),
   );
   const [message, setMessage] = useState('');
   const [texTracerUrl, setTexTracerUrl] = useState('');
   const [texTracerError, setTexTracerError] = useState('');
+  useEffect(() => {
+    if (!editId) {
+      setIsLoadingEdit(false);
+      return;
+    }
+    fetch(`/api/orders/${editId}`)
+      .then(async (response) => {
+        if (!response.ok) {
+          const data = await response.json().catch(() => null);
+          throw new Error(data?.error ?? 'Unable to load draft.');
+        }
+        return response.json() as Promise<EditableOrder>;
+      })
+      .then((order) => {
+        setExistingOrder(order);
+        setQuantities(Object.fromEntries(order.sizes.map(({ size, quantity }) => [size, quantity])));
+        setSelectedCare(Object.fromEntries(order.careSymbols.map(({ group, code }) => [group, code])));
+        setFiberContent(fiberRows.map((_, index) => ({
+          percentage: order.fibers[index]?.percentage.toString() ?? '',
+          name: order.fibers[index]?.name ?? '',
+        })));
+      })
+      .catch((error: Error) => setMessage(error.message))
+      .finally(() => setIsLoadingEdit(false));
+  }, [editId]);
   const totalQuantity = useMemo(
     () => Object.values(quantities).reduce((sum, value) => sum + (Number(value) || 0), 0),
     [quantities],
   );
   const roundUpQuantity = totalQuantity === 0 ? 0 : Math.max(50, totalQuantity);
   const totalAmount = (roundUpQuantity * 0.12).toFixed(2);
+
+  if (isLoadingEdit) {
+    return <main className="mx-auto max-w-6xl px-6 py-10"><p className="text-sm text-muted">Loading draft...</p></main>;
+  }
+  if (editId && !existingOrder) {
+    return (
+      <main className="mx-auto max-w-6xl px-6 py-10">
+        <p className="text-sm text-red-700">{message || 'Unable to load this draft.'}</p>
+        <Link href="/orders" className="button-secondary mt-6">Back to orders</Link>
+      </main>
+    );
+  }
 
   const updateQuantity = (size: string, value: string) => {
     setQuantities((current) => ({ ...current, [size]: Number(value) || 0 }));
@@ -156,7 +202,7 @@ function NewOrderForm() {
             <Field label="Ship mode">
               <select className="select"><option>Air</option><option>Sea</option><option>Courier</option></select>
             </Field>
-            <Field label="Expected delivery date"><input className="input" name="expectedDeliveryDate" type="date" defaultValue={existingOrder?.expectedDeliveryDate ?? '2026-12-05'} /></Field>
+            <Field label="Expected delivery date"><input className="input" name="expectedDeliveryDate" type="date" defaultValue={existingOrder?.expectedDeliveryDate.slice(0, 10) ?? '2026-12-05'} /></Field>
             <Field label="PO no."><input className="input" name="poNumber" defaultValue={existingOrder?.poNumber ?? 'PO-2050'} /></Field>
             <Field label="Acc. no."><input className="input" name="accountNumber" defaultValue={existingOrder?.accountNumber ?? 'AC-9904'} /></Field>
             <Field label="Shape #"><input className="input" name="shapeNo" defaultValue={existingOrder?.shapeNo ?? 'SH-440'} /></Field>
@@ -314,7 +360,7 @@ function NewOrderForm() {
                 {[1, 2, 3, 4].map((line) => (
                   <div className="flex items-center gap-3" key={line}>
                     <span className="w-5 text-sm text-muted">{line}</span>
-                    <select className="select" name={`careText${line}`} defaultValue={existingOrder?.careText[line - 1] ?? ''}><option value="">Select care text</option>{careTexts.map((text) => <option key={text}>{text}</option>)}</select>
+                    <select className="select" name={`careText${line}`} defaultValue={existingOrder?.careTexts[line - 1]?.text ?? ''}><option value="">Select care text</option>{careTexts.map((text) => <option key={text}>{text}</option>)}</select>
                   </div>
                 ))}
               </div>

@@ -6,27 +6,49 @@ import { User } from '@/lib/types';
 export default function AdminUsersPage() {
   const [users, setUsers] = useState<User[]>([]);
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [updatingUserId, setUpdatingUserId] = useState<string | null>(null);
 
   useEffect(() => {
     fetch('/api/admin/users')
-      .then((response) => response.json())
-      .then((data: User[]) => setUsers(data))
-      .catch(() => setError('Unable to load users.'));
+      .then(async (response) => {
+        const data = await response.json().catch(() => null);
+        if (!response.ok) throw new Error(data?.error ?? 'Unable to load users.');
+        setUsers(data as User[]);
+      })
+      .catch((loadError: Error) => setError(loadError.message))
+      .finally(() => setLoading(false));
   }, []);
 
   async function updateStatus(user: User, status: 'ACTIVE' | 'INACTIVE') {
+    await updateUser(user, { status }, 'Unable to update user status.');
+  }
+
+  async function updateRole(user: User, role: User['role']) {
+    if (role === user.role) return;
+    await updateUser(user, { role }, 'Unable to update user role.');
+  }
+
+  async function updateUser(user: User, change: { status?: User['status']; role?: User['role'] }, fallback: string) {
     setError('');
-    const response = await fetch('/api/admin/users', {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ userId: user.id, status }),
-    });
-    const data = await response.json();
-    if (!response.ok) {
-      setError(data.error ?? 'Unable to update user status.');
-      return;
+    setUpdatingUserId(user.id);
+    try {
+      const response = await fetch('/api/admin/users', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: user.id, ...change }),
+      });
+      const data = await response.json().catch(() => null);
+      if (!response.ok) {
+        setError(data?.error ?? fallback);
+        return;
+      }
+      setUsers((current) => current.map((item) => item.id === user.id ? data : item));
+    } catch {
+      setError(fallback);
+    } finally {
+      setUpdatingUserId(null);
     }
-    setUsers((current) => current.map((item) => item.id === user.id ? data : item));
   }
 
   return (
@@ -50,6 +72,8 @@ export default function AdminUsersPage() {
             </tr>
           </thead>
           <tbody className="divide-y divide-border text-sm">
+            {loading && <tr><td className="px-6 py-8 text-center text-muted" colSpan={6}>Loading users…</td></tr>}
+            {!loading && users.length === 0 && <tr><td className="px-6 py-8 text-center text-muted" colSpan={6}>No users found.</td></tr>}
             {users.map((user) => (
               <tr key={user.id}>
                 <td className="px-6 py-4">
@@ -59,18 +83,30 @@ export default function AdminUsersPage() {
                   </div>
                 </td>
                 <td className="px-6 py-4">{user.companyName || '—'}</td>
-                <td className="px-6 py-4">{user.role}</td>
+                <td className="px-6 py-4">
+                  <select
+                    aria-label={`Role for ${user.name}`}
+                    className="rounded-md border border-border bg-white px-2 py-1 text-sm"
+                    value={user.role}
+                    disabled={updatingUserId === user.id}
+                    onChange={(event) => updateRole(user, event.target.value as User['role'])}
+                  >
+                    <option value="ADMIN">ADMIN</option>
+                    <option value="CUSTOMER">CUSTOMER</option>
+                  </select>
+                </td>
                 <td className="px-6 py-4"><span className="badge">{user.status}</span></td>
                 <td className="px-6 py-4">{user.createdAt}</td>
                 <td className="px-6 py-4">
+                  {updatingUserId === user.id && <span className="mr-3 text-muted">Saving…</span>}
                   {user.status === 'PENDING' && (
-                    <button className="button-secondary" onClick={() => updateStatus(user, 'ACTIVE')}>Approve</button>
+                    <button className="button-secondary" disabled={updatingUserId === user.id} onClick={() => updateStatus(user, 'ACTIVE')}>Approve</button>
                   )}
                   {user.status === 'ACTIVE' && (
-                    <button className="button-secondary" onClick={() => updateStatus(user, 'INACTIVE')}>Deactivate</button>
+                    <button className="button-secondary" disabled={updatingUserId === user.id} onClick={() => updateStatus(user, 'INACTIVE')}>Deactivate</button>
                   )}
                   {user.status === 'INACTIVE' && (
-                    <button className="button-secondary" onClick={() => updateStatus(user, 'ACTIVE')}>Activate</button>
+                    <button className="button-secondary" disabled={updatingUserId === user.id} onClick={() => updateStatus(user, 'ACTIVE')}>Activate</button>
                   )}
                 </td>
               </tr>

@@ -70,6 +70,7 @@ function NewOrderForm() {
     })),
   );
   const [message, setMessage] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
   const [texTracerUrl, setTexTracerUrl] = useState('');
   const [texTracerError, setTexTracerError] = useState('');
   useEffect(() => {
@@ -151,10 +152,15 @@ function NewOrderForm() {
     setMessage('Draft saved. You can return to edit this order before submitting.');
   };
   const saveDraft = async (event: MouseEvent<HTMLButtonElement>) => {
+    if (isSaving || !event.currentTarget.form) return;
+    setIsSaving(true);
+    setMessage('');
     try {
-      await persistDraft(event.currentTarget.form!);
+      await persistDraft(event.currentTarget.form);
     } catch {
       setMessage('Unable to save this draft. Please try again.');
+    } finally {
+      setIsSaving(false);
     }
   };
   const previewLabel = async (event: FormEvent<HTMLFormElement>) => {
@@ -375,9 +381,12 @@ function NewOrderForm() {
           </div>
         </section>
 
-        <div className="flex justify-end gap-3">
-          <button type="button" className="button-secondary" onClick={saveDraft}>Save as draft</button>
-          <button type="submit" className="button-primary">Preview label</button>
+        <div className="flex flex-wrap items-center justify-end gap-3">
+          {message && <p className="mr-auto text-sm text-muted" role="status">{message}</p>}
+          <button type="button" className="button-secondary" onClick={saveDraft} disabled={isSaving}>
+            {isSaving ? 'Saving…' : 'Save as draft'}
+          </button>
+          <button type="submit" className="button-primary" disabled={isSaving}>Preview label</button>
         </div>
       </form>
     </main>

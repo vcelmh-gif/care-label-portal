@@ -1,5 +1,5 @@
 import { PrismaClient } from '@prisma/client';
-import { careTexts, careSymbols, countries, fibers, orders, users } from '../lib/mock-data';
+import { careTexts, careSymbols, countries, fibers, orders, systemSettings, users } from '../lib/mock-data';
 import { hashPassword } from '../lib/password';
 
 const prisma = new PrismaClient();
@@ -37,6 +37,14 @@ async function main() {
       where: { code },
       update: { imagePath: symbolImages[code] ?? '', isActive: true },
       create: { code, description: code, imagePath: symbolImages[code] ?? '' },
+    });
+  }
+
+  for (const setting of systemSettings) {
+    await prisma.systemSetting.upsert({
+      where: { id: setting.id },
+      update: { name: setting.name, value: setting.value, description: setting.description },
+      create: setting,
     });
   }
 

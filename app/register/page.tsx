@@ -13,11 +13,12 @@ export default function RegisterPage() {
     setError('');
     const formData = new FormData(event.currentTarget);
     const name = String(formData.get('name') ?? '').trim();
+    const companyName = String(formData.get('companyName') ?? '').trim();
     const email = String(formData.get('email') ?? '').trim();
     const password = String(formData.get('password') ?? '');
 
-    if (!name || !email || password.length < 8) {
-      setError('Enter your name and email, and use a password with at least 8 characters.');
+    if (!name || !companyName || !email || password.length < 8) {
+      setError('Enter your name, company, and email, and use a password with at least 8 characters.');
       return;
     }
 
@@ -25,7 +26,7 @@ export default function RegisterPage() {
       const response = await fetch('/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, email, password }),
+        body: JSON.stringify({ name, companyName, email, password }),
       });
       const result = await response.json().catch(() => null);
       if (!response.ok) {
@@ -56,7 +57,7 @@ export default function RegisterPage() {
             </div>
             <div>
               <label className="mb-2 block text-sm font-medium">Company</label>
-              <input className="input" type="text" placeholder="Fashion Source" />
+              <input className="input" name="companyName" type="text" placeholder="Fashion Source" required />
             </div>
           </div>
           <div>
